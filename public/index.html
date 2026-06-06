@@ -929,48 +929,71 @@
             } else { alert("Error: Incorrect password."); }
         }
 
+        // 🔥 THE NEW 3-STEP CUSTOMER EDIT FUNCTION
         function editConfigItem(index) {
             let item = appData.config[currentConfigContext][index];
             let oldName = (currentConfigContext === 'customers' && typeof item === 'object') ? item.name : item;
 
+            // 1. Prompt for the Name
             const newName = prompt(`Rename "${oldName}"\n\nWarning: This will automatically update all existing orders linked to this name.`, oldName);
+            if (newName === null) return; // Cancel stops the edit
+            const trimmedName = newName.trim();
+            if (trimmedName === '') return;
 
-            if (newName !== null) {
-                const trimmedName = newName.trim();
-                if (trimmedName !== '' && trimmedName !== oldName) {
-                    
-                    if (currentConfigContext === 'customers') {
-                        if (appData.config.customers.some(c => (typeof c === 'object' ? c.name : c) === trimmedName)) { return alert("Name exists."); }
-                        if (typeof item === 'object') { item.name = trimmedName; } 
-                        else { appData.config.customers[index] = {name: trimmedName, phone: '', email: ''}; }
-                    } else {
-                        if (appData.config[currentConfigContext].includes(trimmedName)) { return alert("Name exists."); }
-                        appData.config[currentConfigContext][index] = trimmedName;
-                    }
-                    
-                    saveConfigToFirebase().then(() => { renderConfigList(); updateAllDropdowns(); });
+            if (currentConfigContext === 'customers') {
+                // 2. Setup prompts specifically for Customer Phone and Email
+                let oldPhone = typeof item === 'object' ? (item.phone || '') : '';
+                let oldEmail = typeof item === 'object' ? (item.email || '') : '';
 
-                    appData.orders.forEach(order => {
-                        let changed = false;
-                        if (currentConfigContext === 'customers' && order.customer === oldName) { order.customer = trimmedName; changed = true; }
-                        else if (currentConfigContext === 'employees' && order.employee === oldName) { order.employee = trimmedName; changed = true; }
-                        else if (currentConfigContext === 'departments' && order.department === oldName) { order.department = trimmedName; changed = true; }
-                        else if (currentConfigContext === 'workers' && order.worker === oldName) { order.worker = trimmedName; changed = true; }
-                        else if (currentConfigContext === 'jewelryTypes') {
-                            if (order.jewelryTypes && Array.isArray(order.jewelryTypes)) {
-                                const jIndex = order.jewelryTypes.indexOf(oldName);
-                                if (jIndex !== -1) { order.jewelryTypes[jIndex] = trimmedName; changed = true; }
-                            }
-                        }
-                        else if (currentConfigContext === 'metalTypes') {
-                            if (order.materials && Array.isArray(order.materials)) {
-                                order.materials.forEach(mat => { if (mat.metalType === oldName) { mat.metalType = trimmedName; changed = true; } });
-                            }
-                        }
-                        if(changed) saveOrderToFirebase(order);
-                    });
+                let newPhone = prompt(`Enter Phone Number for "${trimmedName}"\n(Leave blank for none):`, oldPhone);
+                if (newPhone === null) return; 
+                
+                let newEmail = prompt(`Enter Email Address for "${trimmedName}"\n(Leave blank for none):`, oldEmail);
+                if (newEmail === null) return; 
+
+                // Check for duplicate names (ignoring the one we are editing)
+                if (appData.config.customers.some((c, i) => i !== index && (typeof c === 'object' ? c.name : c) === trimmedName)) { 
+                    return alert("That customer name already exists."); 
                 }
+
+                // Apply the full customer profile update
+                appData.config.customers[index] = { name: trimmedName, phone: newPhone.trim(), email: newEmail.trim() };
+            } else {
+                // Standard edit for Departments, Metals, etc.
+                if (appData.config[currentConfigContext].some((c, i) => i !== index && c === trimmedName)) { 
+                    return alert("That name already exists."); 
+                }
+                appData.config[currentConfigContext][index] = trimmedName;
             }
+            
+            // Save the list changes
+            saveConfigToFirebase().then(() => { renderConfigList(); updateAllDropdowns(); });
+
+            // 3. Update all historical orders if the name OR email changed
+            appData.orders.forEach(order => {
+                let changed = false;
+                
+                if (currentConfigContext === 'customers' && order.customer === oldName) { 
+                    order.customer = trimmedName; 
+                    order.customerEmail = appData.config.customers[index].email; // Ensure email link is updated
+                    changed = true; 
+                }
+                else if (currentConfigContext === 'employees' && order.employee === oldName) { order.employee = trimmedName; changed = true; }
+                else if (currentConfigContext === 'departments' && order.department === oldName) { order.department = trimmedName; changed = true; }
+                else if (currentConfigContext === 'workers' && order.worker === oldName) { order.worker = trimmedName; changed = true; }
+                else if (currentConfigContext === 'jewelryTypes') {
+                    if (order.jewelryTypes && Array.isArray(order.jewelryTypes)) {
+                        const jIndex = order.jewelryTypes.indexOf(oldName);
+                        if (jIndex !== -1) { order.jewelryTypes[jIndex] = trimmedName; changed = true; }
+                    }
+                }
+                else if (currentConfigContext === 'metalTypes') {
+                    if (order.materials && Array.isArray(order.materials)) {
+                        order.materials.forEach(mat => { if (mat.metalType === oldName) { mat.metalType = trimmedName; changed = true; } });
+                    }
+                }
+                if(changed) saveOrderToFirebase(order);
+            });
         }
 
         function renderConfigList() {
