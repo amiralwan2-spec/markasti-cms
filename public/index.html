@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Markasti CMS Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen text-sm text-gray-800 flex flex-col md:flex-row overflow-x-hidden">
+
+    <div id="authOverlay" class="fixed inset-0 bg-slate-900 z-[200] flex flex-col justify-center items-center p-4 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-black tracking-widest text-yellow-500 uppercase">MARKASTI</h1>
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Authorized Personnel Only</p>
+            </div>
+
+            <h2 class="text-center font-bold text-slate-700 mb-4 border-b border-gray-200 pb-3 text-sm">System Sign-In</h2>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Email Address</label>
+                    <input type="email" id="loginEmail" class="w-full border border-gray-300 rounded p-2.5 focus:ring-1 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
+                    <input type="password" id="loginPassword" class="w-full border border-gray-300 rounded p-2.5 focus:ring-1 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold text-sm uppercase tracking-wider p-3 rounded shadow hover:bg-blue-700 transition">Access System</button>
+            </form>
+
+            <div id="authError" class="mt-4 hidden p-3 bg-red-50 text-red-600 text-xs font-bold text-center border border-red-200 rounded"></div>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden w-full flex flex-col md:flex-row min-h-screen">
+        
+        <header class="md:hidden w-full bg-slate-900 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-40">
+            <div class="flex items-center gap-2">
+                <h1 class="text-lg font-bold tracking-wider text-yellow-500">MARKASTI</h1>
+            </div>
+            <button onclick="toggleMobileSidebar()" class="text-white text-2xl focus:outline-none p-1" aria-label="Toggle Menu">
+                ☰
+            </button>
+        </header>
+
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out md:translate-x-0 md:relative md:flex flex-shrink-0 h-screen">
+            <div class="p-4 flex justify-end md:hidden">
+                <button onclick="toggleMobileSidebar()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <div class="p-6 flex flex-col items-center border-b border-slate-800 hidden md:flex">
+                <img id="sidebarLogo" src="" alt="Markasti Logo" class="hidden w-28 mb-3 object-contain drop-shadow-md">
+                <h1 class="text-xl font-bold tracking-wider text-yellow-500">MARKASTI</h1>
+                <p class="text-slate-400 text-[10px] uppercase tracking-widest mt-1">Order Management v17.0</p>
+                <div class="mt-3 text-[10px] text-emerald-400 font-bold bg-slate-800 px-2 py-1 rounded truncate w-full text-center" id="currentUserDisplay"></div>
+            </div>
+            
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto pt-4 pb-4">
+                <button onclick="handleNav('dashboard')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 flex items-center gap-2"><span>📊</span> Dashboard</button>
+                <button onclick="handleNav('newOrder')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 flex items-center gap-2"><span>➕</span> Register Order</button>
+                <button onclick="handleNav('reports')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 font-semibold text-blue-400 flex items-center gap-2"><span>📑</span> Reports & Exports</button>
+                <hr class="border-slate-700 my-4">
+                <p class="text-xs text-slate-500 uppercase font-semibold px-3 mb-1 tracking-wider">Configuration</p>
+                <button onclick="handleNav('manageBrand')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">✨ Brand Settings</button>
+                <button onclick="handleNav('manageDepartments')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">🏭 Departments</button>
+                <button onclick="handleNav('manageEmployees')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">👥 Employees</button>
+                <button onclick="handleNav('manageCustomers')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">🤝 Customers</button>
+                <button onclick="handleNav('manageWorkers')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">👷 Workers</button>
+                <button onclick="handleNav('manageJewelry')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">💍 Jewelry Types</button>
+                <button onclick="handleNav('manageMetals')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">⛓️ Metal Types</button>
+                <hr class="border-slate-700 my-4">
+                
+                <div class="p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <button onclick="exportData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded mb-2 transition shadow text-xs font-bold">💾 Download Backup File</button>
+                    <label class="w-full block bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded text-center cursor-pointer transition shadow text-xs font-bold mb-2">
+                        📂 Smart Cloud Restore
+                        <input type="file" id="fileInput" accept=".json" class="hidden" onchange="importData(event)">
+                    </label>
+                    <button onclick="handleLogout()" class="w-full bg-red-600 hover:bg-red-700 text-white p-2.5 rounded transition shadow text-xs font-bold">🚪 Sign Out</button>
+                </div>
+            </nav>
+        </aside>
+
+        <div id="sidebarOverlay" onclick="toggleMobileSidebar()" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+        <main class="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto w-full max-w-full">
+            <header class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 flex-wrap gap-2">
+                <h2 id="pageTitle" class="text-xl sm:text-2xl font-bold text-gray-800">Dashboard Overview</h2>
+                <div id="cloudStatus" class="bg-yellow-50 text-yellow-700 px-2.5 py-1 rounded-full text-[11px] font-bold border border-yellow-200 flex items-center shadow-sm">
+                    <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-1.5 animate-pulse"></span>
+                    Connecting to Firebase...
+                </div>
+            </header>
+
+            <section id="dashboard" class="tab-content block">
+                
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
+                    
+                    <div class="bg-slate-800 border border-slate-700 p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Total Orders</p>
+                                <h3 id="countTotal" class="text-2xl sm:text-3xl font-black text-white">0</h3>
+                            </div>
+                            <div class="text-2xl sm:text-3xl opacity-80">📊</div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold border-t border-slate-700 mt-2 pt-1.5">
+                            <span class="text-yellow-500">Au: <span id="totalAu">0</span></span>
+                            <span class="text-gray-300">Ag: <span id="totalAg">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-yellow-600 uppercase tracking-wider mb-0.5">Pending</p>
+                                <h3 id="countPending" class="text-2xl sm:text-3xl font-black text-yellow-800">0</h3>
+                            </div>
+                            <div class="text-2xl sm:text-3xl opacity-80">⏳</div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold border-t border-yellow-200 mt-2 pt-1.5">
+                            <span class="text-yellow-600">Au: <span id="pendingAu">0</span></span>
+                            <span class="text-gray-500">Ag: <span id="pendingAg">0</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-0.5">In Progress</p>
+                                <h3 id="countInProgress" class="text-2xl sm:text-3xl font-black text-blue-800">0</h3>
+                            </div>
+                            <div class="text-2xl sm:text-3xl opacity-80">⚙️</div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold border-t border-blue-200 mt-2 pt-1.5">
+                            <span class="text-yellow-600">Au: <span id="inProgressAu">0</span></span>
+                            <span class="text-gray-500">Ag: <span id="inProgressAg">0</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 border border-green-200 p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-green-600 uppercase tracking-wider mb-0.5">Completed</p>
+                                <h3 id="countCompleted" class="text-2xl sm:text-3xl font-black text-green-800">0</h3>
+                            </div>
+                            <div class="text-2xl sm:text-3xl opacity-80">✅</div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold border-t border-green-200 mt-2 pt-1.5">
+                            <span class="text-yellow-600">Au: <span id="completedAu">0</span></span>
+                            <span class="text-gray-500">Ag: <span id="completedAg">0</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-red-50 border border-red-200 p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-red-600 uppercase tracking-wider mb-0.5">Canceled</p>
+                                <h3 id="countCanceled" class="text-2xl sm:text-3xl font-black text-red-800">0</h3>
+                            </div>
+                            <div class="text-2xl sm:text-3xl opacity-80">❌</div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold border-t border-red-200 mt-2 pt-1.5">
+                            <span class="text-yellow-600">Au: <span id="canceledAu">0</span></span>
+                            <span class="text-gray-500">Ag: <span id="canceledAg">0</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 flex flex-col xl:flex-row items-stretch xl:items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200 gap-3">
+                    <div class="flex items-center justify-between sm:justify-start gap-4">
+                        <h3 class="font-bold text-gray-700 whitespace-nowrap">Order Management</h3>
+                        <div class="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0">
+                            <button id="btnListView" onclick="setViewMode('list')" class="px-2.5 py-1 text-xs font-bold rounded transition text-gray-700">List</button>
+                            <button id="btnGridView" onclick="setViewMode('grid')" class="px-2.5 py-1 text-xs font-bold rounded transition text-gray-700">Grid</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full xl:w-auto">
+                        <div class="relative w-full">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                            <input type="text" id="searchInput" oninput="renderDashboard()" placeholder="Search..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                        </div>
+                        <div>
+                            <select id="dateSort" onchange="renderDashboard()" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-blue-500 font-medium bg-white">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="statusFilter" onchange="renderDashboard()" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-blue-500 font-medium bg-white">
+                                <option value="All">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Canceled">Canceled</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="listContainer" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden block">
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-left border-collapse min-w-[950px]">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 border-b border-gray-200 text-xs uppercase font-bold">
+                                    <th class="p-4 w-16">Photo</th>
+                                    <th class="p-4">Order #</th>
+                                    <th class="p-4">Timeline</th>
+                                    <th class="p-4">Client & Rep</th>
+                                    <th class="p-4">Routing / Notes</th>
+                                    <th class="p-4 w-56">Material Specs</th>
+                                    <th class="p-4">Status & Audit</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="ordersMobileListBody" class="block md:hidden divide-y divide-gray-200"></div>
+                </div>
+
+                <div id="gridContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                <div id="emptyState" class="p-8 text-center text-gray-500 bg-white rounded-lg shadow-sm border border-gray-200 hidden mt-4">No matching production data entries found.</div>
+            </section>
+
+            <section id="reports" class="tab-content hidden max-w-4xl space-y-6">
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-green-200">
+                    <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
+                        <span class="text-xl">📊</span>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-800">Advanced Analytics & Excel Export</h3>
+                            <p class="text-xs text-gray-500">Filter your database by dates and specific users to generate audit reports.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-4 rounded border border-gray-200">
+                        <div>
+                            <label class="block font-semibold text-gray-600 text-xs uppercase mb-1">From Date</label>
+                            <input type="date" id="excelStartDate" class="w-full border border-gray-300 rounded p-2 bg-white text-sm">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-gray-600 text-xs uppercase mb-1">To Date</label>
+                            <input type="date" id="excelEndDate" class="w-full border border-gray-300 rounded p-2 bg-white text-sm">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-gray-600 text-xs uppercase mb-1">Filter by User / Employee</label>
+                            <select id="excelEmployee" class="w-full border border-gray-300 rounded p-2 bg-white text-sm">
+                                <option value="All">All Users / Everyone</option>
+                                </select>
+                        </div>
+                        <div class="md:col-span-3 flex justify-end mt-2">
+                            <button onclick="exportFilteredExcel()" class="bg-green-600 text-white px-8 py-2.5 rounded shadow hover:bg-green-700 font-bold text-xs uppercase tracking-wider transition w-full md:w-auto">Generate Excel Report</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-red-200">
+                    <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
+                        <span class="text-xl">📄</span>
+                        <h3 class="text-base font-bold text-gray-800">Job Sheet Order PDF Export</h3>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-end gap-3 bg-gray-50 p-4 rounded border border-gray-200">
+                        <div class="flex-1">
+                            <label class="block font-semibold text-gray-600 text-xs uppercase mb-1">Select Active Production Ticket</label>
+                            <select id="pdfOrderSelect" class="w-full border border-gray-300 rounded p-2 bg-white text-sm"></select>
+                        </div>
+                        <button onclick="generatePDFFromSelect()" class="bg-red-600 text-white px-5 py-2.5 rounded shadow hover:bg-red-700 font-bold text-xs uppercase tracking-wider transition">Generate Production PDF</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="newOrder" class="tab-content hidden bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200 max-w-4xl">
+                <form id="orderForm" onsubmit="saveNewOrder(event)" class="grid grid-cols-2 gap-4 sm:gap-6">
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Order / Tracking Number</label>
+                        <input type="text" id="orderNumber" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm focus:ring-1 focus:ring-blue-500" required>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Date Registered</label>
+                        <input type="date" id="orderDate" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Job Description</label>
+                        <textarea id="orderDesc" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm" rows="2" placeholder="Detailed description of the piece..."></textarea>
+                    </div>
+
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase mb-1">Jewelry Classification (Tap / Ctrl+Click)</label>
+                        <select id="orderJewelryType" multiple class="w-full border border-gray-300 rounded p-2 h-28 text-sm bg-white"></select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase mb-1">Reference Images</label>
+                        <input type="file" multiple accept="image/*" onchange="processImages(event, 'new')" class="w-full border border-gray-300 rounded p-2 text-sm bg-gray-50 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700">
+                        <div id="newOrderPhotoPreview" class="flex gap-2 mt-2 overflow-x-auto p-2 bg-gray-100 rounded min-h-[4.5rem]"></div>
+                    </div>
+
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Select Customer Profile</label>
+                        <select id="orderCustomer" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm bg-white" required></select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Sales Rep / Original Employee</label>
+                        <select id="orderEmployee" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm bg-white" required></select>
+                    </div>
+
+                    <div class="col-span-2 border-t pt-4 mt-2 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800 text-xs uppercase tracking-wider">Dynamic Weight Allocations</h3>
+                        <button type="button" onclick="addMaterialRow('new')" class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-100 transition border border-blue-200">+ Add Raw Allocation</button>
+                    </div>
+                    
+                    <div class="col-span-2 space-y-2" id="newOrderMaterialsContainer"></div>
+                    
+                    <div class="col-span-2 flex justify-end">
+                        <div class="bg-slate-900 text-white p-3 rounded-lg text-right min-w-[180px] border border-slate-800">
+                            <span class="text-[9px] text-slate-400 uppercase font-black tracking-widest block mb-0.5">Calculated Pure Net</span>
+                            <span id="newOrderTotalPureDisplay" class="text-lg font-black text-yellow-500">0.00 g</span>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 border-t pt-4 mt-2">
+                        <h3 class="font-bold text-gray-800 text-xs uppercase tracking-wider mb-2">Internal Production Routing</h3>
+                    </div>
+                    
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Production Allocation Date</label>
+                        <input type="date" id="orderStartDate" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm bg-blue-50/50">
+                        <p class="text-[10px] text-gray-500 mt-1">Leave blank if production has not started yet.</p>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Initial Status Track</label>
+                        <select id="orderStatus" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm bg-white">
+                            <option>Pending</option>
+                            <option>In Progress</option>
+                            <option>Completed</option>
+                            <option>Canceled</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Route To Department</label>
+                        <select id="orderDept" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm bg-white"></select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Assign Benchmark Artisan</label>
+                        <select id="orderWorker" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm bg-white"></select>
+                    </div>
+                    
+                    <div class="col-span-2">
+                        <label class="block font-bold text-gray-700 text-xs uppercase">Department Dispatch Directives</label>
+                        <input type="text" id="orderNotes" class="mt-1 w-full border border-gray-300 rounded p-2.5 text-sm" placeholder="Bench metrics, setting requirements...">
+                    </div>
+                    <div class="col-span-2 flex justify-end mt-4">
+                        <button type="submit" class="w-full sm:w-auto bg-blue-600 text-white px-8 py-3 rounded shadow hover:bg-blue-700 font-bold uppercase tracking-wider text-xs transition">Commit Order Record</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="brandSection" class="tab-content hidden max-w-2xl">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-1">Company Assets Management</h3>
+                    <p class="text-xs text-gray-500 mb-4">Set up global visual configurations for system PDF reporting generation headers.</p>
+                    
+                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center bg-gray-50 hover:bg-gray-100 transition">
+                        <label class="cursor-pointer block">
+                            <span class="bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wide shadow">Select Image File</span>
+                            <input type="file" accept="image/*" class="hidden" onchange="processLogoUpload(event)">
+                        </label>
+                        <p class="text-xs text-gray-400 mt-3">PNG or JPG formats recommended.</p>
+                    </div>
+
+                    <div class="mt-6">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Current Logo Preview:</p>
+                        <div class="bg-slate-900 p-6 rounded inline-block">
+                            <img id="logoPreview" src="" class="hidden max-h-[80px] object-contain drop-shadow-md">
+                            <span id="noLogoText" class="text-slate-400 italic text-sm">No logo uploaded yet.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="configSection" class="tab-content hidden max-w-2xl">
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h3 id="configTitle" class="text-lg font-bold text-gray-800 mb-3">Maintain Parameters</h3>
+                    <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                        <input type="text" id="newConfigItem" class="flex-1 border border-gray-300 rounded p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="Label name string...">
+                        <button onclick="addConfigItem()" class="bg-blue-600 text-white px-5 py-2.5 rounded text-xs font-bold uppercase tracking-wide hover:bg-blue-700 transition shadow">Append</button>
+                    </div>
+                    <div class="bg-gray-50 rounded border border-gray-200 overflow-hidden">
+                        <ul id="configList" class="divide-y divide-gray-200 bg-white"></ul>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div> <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-end sm:items-center p-0 sm:p-4 animate-fadeIn">
+        <div class="bg-white w-full max-w-3xl rounded-t-xl sm:rounded-xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 text-base">Modifying Tracking Ticket: <span id="editOrderNumberDisplay" class="text-blue-600"></span></h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-red-600 text-2xl p-1 focus:outline-none">&times;</button>
+            </div>
+            
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 text-sm">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-600 text-xs uppercase">Production Start Allocation</label>
+                        <input type="date" id="editStartDate" class="mt-1 w-full border border-gray-300 rounded p-2 text-sm bg-white">
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-600 text-xs uppercase">Operational Tracking Status</label>
+                        <select id="editStatus" class="mt-1 w-full border border-gray-300 rounded p-2 text-sm bg-white">
+                            <option>Pending</option>
+                            <option>In Progress</option>
+                            <option>Completed</option>
+                            <option>Canceled</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-600 text-xs uppercase">Reassign Customer Profile</label>
+                        <select id="editCustomer" class="mt-1 w-full border border-gray-300 rounded p-2 text-sm bg-white"></select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-600 text-xs uppercase">Transfer Line Department</label>
+                        <select id="editDept" class="mt-1 w-full border border-gray-300 rounded p-2 text-sm bg-white"></select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-600 text-xs uppercase">Bench Assignment</label>
+                        <select id="editWorker" class="mt-1 w-full border border-gray-300 rounded p-2 text-sm bg-white"></select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block font-bold text-gray-600 text-xs uppercase">Internal Workflow Status Line Notes</label>
+                        <input type="text" id="editNotes" class="mt-1 w-full border border-gray-300 rounded p-2 text-sm bg-white">
+                    </div>
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block font-bold text-gray-600 text-xs uppercase">Update Specification Matrix Notes</label>
+                    <textarea id="editDesc" class="mt-1 w-full border border-gray-300 rounded p-2 text-sm bg-white" rows="2"></textarea>
+                </div>
+
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-gray-700 text-xs uppercase tracking-wider">Fine Material Mass Indexes</h4>
+                        <button type="button" onclick="addMaterialRow('edit')" class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold border border-blue-200 hover:bg-blue-100">+ Add Line</button>
+                    </div>
+                    <div class="space-y-2" id="editOrderMaterialsContainer"></div>
+                    <div class="flex justify-end mt-2">
+                        <div class="bg-slate-100 p-2 rounded text-right min-w-[150px] border border-gray-200">
+                            <span class="text-[9px] text-gray-500 uppercase font-bold tracking-wider block">Pure Mass</span>
+                            <span id="editOrderTotalPureDisplay" class="text-sm font-black text-slate-800">0.00 g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block font-bold text-gray-600 text-xs uppercase">Linked Visual Documentation</label>
+                        <label class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded border border-blue-200 cursor-pointer hover:bg-blue-100 text-xs font-bold uppercase tracking-wider">
+                            Upload File
+                            <input type="file" multiple accept="image/*" class="hidden" onchange="processImages(event, 'edit')">
+                        </label>
+                    </div>
+                    <div id="editOrderPhotoGallery" class="flex flex-wrap gap-2 bg-gray-50 p-3 rounded border border-gray-200 min-h-[5rem]"></div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t bg-gray-50 flex gap-2 justify-end">
+                <button onclick="closeEditModal()" class="w-1/2 sm:w-auto px-4 py-2.5 border border-gray-300 rounded text-gray-700 font-bold text-xs uppercase hover:bg-gray-100">Dismiss</button>
+                <button onclick="saveEditChanges()" class="w-1/2 sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded shadow font-bold text-xs uppercase tracking-wider hover:bg-blue-700">Commit Updates</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="imageViewer" class="hidden fixed inset-0 bg-black/95 z-[100] flex flex-col justify-center items-center overflow-hidden animate-fadeIn">
+        <span class="absolute top-4 left-4 text-slate-400 text-[10px] font-bold tracking-widest z-50 bg-black/40 px-3 py-1.5 rounded-full pointer-events-none">SCROLL/WHEEL TO ZOOM &bull; TOUCH DRAG TO PAN</span>
+        <button onclick="closeImageViewer()" class="absolute top-3 right-4 text-white text-3xl hover:text-gray-300 z-50 p-2 font-light focus:outline-none">&times;</button>
+        
+        <div class="w-full h-[70vh] flex items-center justify-center overflow-hidden relative">
+            <img id="viewerMainImage" src="" class="max-w-[95%] max-h-full object-contain shadow-2xl rounded transition-transform duration-75 cursor-grab select-none">
+        </div>
+        <div id="viewerGallery" class="flex gap-3 mt-4 overflow-x-auto w-full max-w-xl px-6 py-2 z-50 scrollbar-none"></div>
+    </div>
+
+    <script>
+        // ==============================================================================
+        // 🔥 ACTIVE CLOUD STORAGE SYNC CONFIGURATION
+        // ==============================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSqTXeIMqNuWZ9vdaIqeJ8NmH5VHS0HdQ",
+            authDomain: "markasti-cms.firebaseapp.com",
+            projectId: "markasti-cms",
+            storageBucket: "markasti-cms.firebasestorage.app",
+            messagingSenderId: "582868238319",
+            appId: "1:582868238319:web:37464a7058fa525626c01a"
+        };
+
+        // --- GLOBAL APP STATE ---
+        const defaultData = {
+            orders: [],
+            config: {
+                logo: null,
+                departments: ['CAD/3D Printing', 'Casting', 'Filing & Assembly', 'Stone Setting', 'Polishing & Plating', 'Ready for Delivery'],
+                employees: ['Manager Admin'],
+                customers: ['Walk-in Client'],
+                workers: ['Unassigned'],
+                jewelryTypes: ['Ring', 'Necklace', 'Bracelet', 'Pendant'],
+                metalTypes: ['Yellow Gold', 'White Gold', 'Rose Gold', 'Platinum', 'Silver']
+            }
+        };
+
+        let appData = defaultData; 
+        let tempNewPhotos = []; 
+        let currentUserRole = 'Manager';
+        let tempNewMaterials = []; 
+        let tempEditMaterials = [];
+        let currentEditOrder = null; 
+        let currentConfigContext = '';
+        let currentViewMode = localStorage.getItem('markastiViewPref') || 'list';
+        let loggedInEmail = null;
+        
+        let db; 
+        let auth;
+        let unsubscribeConfig = null;
+        let unsubscribeOrders = null;
+
+        // --- AUTHENTICATION ENGINE ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+            const errDiv = document.getElementById('authError');
+            
+            auth.signInWithEmailAndPassword(email, pass).catch(error => {
+                errDiv.innerText = error.message;
+                errDiv.classList.remove('hidden');
+            });
+        }
+
+        function handleLogout() {
+            auth.signOut().then(() => {
+                window.location.reload();
+            });
+        }
+
+        // --- LIFECYCLE INITS & FIREBASE CONNECTION ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+
+                db.enablePersistence().catch(err => {
+                    console.warn("Offline persistence notice (safe to ignore):", err);
+                });
+
+                // Listen for Login/Logout state changes
+                auth.onAuthStateChanged(async (user) => {
+                 if (user) {
+        // --- ROLE CHECK START ---
+        loggedInEmail = user.email;
+        const userDoc = await db.collection('users').doc(user.email).get();
+        currentUserRole = userDoc.exists ? userDoc.data().role : 'Manager';
+        // --- ROLE CHECK END ---
+
+        // User is logged in: Hide overlay, Show app, Load data
+        document.getElementById('authOverlay').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('currentUserDisplay').innerText = `👤 ${user.email} (${currentUserRole})`;
+
+        setupFirebaseListeners();
+        addMaterialRow('new');
+        setViewMode(currentViewMode);
+        initZoomAndPan();
+        
+        document.getElementById('orderDate').valueAsDate = new Date();
+        const dayRange = new Date(); dayRange.setDate(new Date().getDate() - 30);
+        document.getElementById('excelStartDate').valueAsDate = dayRange;
+        document.getElementById('excelEndDate').valueAsDate = new Date();
+
+        const status = document.getElementById('cloudStatus');
+        status.className = "bg-green-50 text-green-700 px-2.5 py-1 rounded-full text-[11px] font-bold border border-green-200 flex items-center shadow-sm";
+        status.innerHTML = `<span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></span> Cloud Sync Active`;
+
+    } else {
+        // User is logged out: Show overlay, Hide app, stop database listening
+        loggedInEmail = null;
+        document.getElementById('authOverlay').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        if (unsubscribeConfig) unsubscribeConfig();
+        if (unsubscribeOrders) unsubscribeOrders();
+    }
+});
+
+            } catch (err) {
+                console.error("Firebase connection error:", err);
+                document.getElementById('authError').innerText = "Database connection failed. Please check your internet.";
+                document.getElementById('authError').classList.remove('hidden');
+            }
+        });
+
+        // --- REAL-TIME FIREBASE SYNC ---
+        function setupFirebaseListeners() {
+            unsubscribeConfig = db.collection('settings').doc('config').onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data && data.customers && data.customers.length > 0) {
+                        appData.config = data;
+                        sortConfigLists();
+                        updateAllDropdowns();
+                        renderLogoUI();
+                        
+                        if (currentConfigContext !== '') {
+                            renderConfigList();
+                        }
+                    }
+                }
+            }, error => { console.error("Config sync error:", error); });
+
+            unsubscribeOrders = db.collection('orders').onSnapshot(snapshot => {
+                appData.orders = [];
+                snapshot.forEach(doc => {
+                    appData.orders.push({ id: doc.id, ...doc.data() });
+                });
+                renderDashboard();
+                updatePDFDropdown();
+                updateExcelEmployeeDropdown();
+            }, error => { console.error("Orders sync error:", error); });
+        }
+
+        async function saveConfigToFirebase() {
+            try { await db.collection('settings').doc('config').set(appData.config); }
+            catch(e) { console.error(e); alert("Failed to save configuration. Check your permissions."); }
+        }
+
+        async function saveOrderToFirebase(orderObj) {
+            try { await db.collection('orders').doc(orderObj.id).set(orderObj); } 
+            catch(e) { console.error(e); alert("Failed to save order to cloud. Ensure your image sizes aren't exceeding limits."); }
+        }
+
+        async function deleteOrderFromFirebase(orderId) {
+            try { await db.collection('orders').doc(orderId).delete(); } 
+            catch(e) { console.error(e); alert("Failed to delete order from cloud. Check your permissions."); }
+        }
+
+        // --- MOBILE LAYOUT CONTROL ---
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function handleNav(tabId) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+            switchTab(tabId);
+        }
+
+        // --- LOGIC ---
+        function sortConfigLists() {
+            const keys = ['customers', 'employees', 'workers', 'jewelryTypes', 'metalTypes'];
+            keys.forEach(k => {
+                if (appData.config[k] && Array.isArray(appData.config[k])) {
+                    appData.config[k].sort((a, b) => String(a).localeCompare(String(b), undefined, {sensitivity: 'base'}));
+                }
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const titles = {
+                'dashboard': 'Dashboard Overview', 'newOrder': 'Register New Order', 'reports': 'Reports & Exports',
+                'manageBrand': 'Brand Settings', 'manageDepartments': 'Manage Departments', 'manageEmployees': 'Manage Employees',
+                'manageCustomers': 'Manage Customers', 'manageWorkers': 'Manage Workers', 'manageJewelry': 'Manage Jewelry Types',
+                'manageMetals': 'Manage Metal Types'
+            };
+            
+            document.getElementById('pageTitle').innerText = titles[tabId] || 'Dashboard';
+            if (tabId === 'manageBrand') {
+                document.getElementById('brandSection').classList.remove('hidden');
+            } else if (tabId.startsWith('manage')) {
+                document.getElementById('configSection').classList.remove('hidden');
+                setupConfigView(tabId.replace('manage', ''));
+            } else {
+                document.getElementById(tabId).classList.remove('hidden');
+            }
+
+            if(tabId === 'dashboard') setViewMode(currentViewMode); 
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            localStorage.setItem('markastiViewPref', mode);
+            const btnList = document.getElementById('btnListView');
+            const btnGrid = document.getElementById('btnGridView');
+            
+            if (mode === 'list') {
+                btnList.className = "px-2.5 py-1 text-xs font-bold rounded transition bg-white shadow-sm text-blue-600";
+                btnGrid.className = "px-2.5 py-1 text-xs font-bold rounded transition text-gray-700";
+                document.getElementById('listContainer').classList.remove('hidden');
+                document.getElementById('gridContainer').classList.add('hidden');
+            } else {
+                btnGrid.className = "px-2.5 py-1 text-xs font-bold rounded transition bg-white shadow-sm text-blue-600";
+                btnList.className = "px-2.5 py-1 text-xs font-bold rounded transition text-gray-700";
+                document.getElementById('gridContainer').classList.remove('hidden');
+                document.getElementById('listContainer').classList.add('hidden');
+            }
+            renderDashboard();
+        }
+
+        function getMaterialsFromOrder(order) {
+            if (order.materials && Array.isArray(order.materials) && order.materials.length > 0) return order.materials;
+            if (order.metalType || order.grossWeight) {
+                const safeMetalTypes = (appData.config && appData.config.metalTypes && appData.config.metalTypes.length > 0) ? appData.config.metalTypes : ['Yellow Gold'];
+                return [{
+                    metalType: order.metalType || safeMetalTypes[0],
+                    karat: order.karat || '24',
+                    grossWeight: order.grossWeight || 0,
+                    pureWeight: order.pureWeight || 0
+                }];
+            }
+            return [];
+        }
+
+        function addMaterialRow(mode) {
+            const safeMetalTypes = (appData.config && appData.config.metalTypes && appData.config.metalTypes.length > 0) ? appData.config.metalTypes : ['Yellow Gold'];
+            const newMat = { metalType: safeMetalTypes[0], karat: '24', grossWeight: '', pureWeight: '0.00' };
+            
+            if (mode === 'new') tempNewMaterials.push(newMat);
+            else tempEditMaterials.push(newMat);
+            
+            renderMaterialRows(mode);
+        }
+
+        function removeMaterialRow(mode, index) {
+            if (mode === 'new') {
+                tempNewMaterials.splice(index, 1);
+            } else {
+                tempEditMaterials.splice(index, 1);
+            }
+            renderMaterialRows(mode);
+        }
+
+        function updateMaterialField(mode, index, field, val) {
+            const arr = mode === 'new' ? tempNewMaterials : tempEditMaterials;
+            arr[index][field] = val;
+            
+            if(field === 'karat' || field === 'grossWeight') {
+                let gross = parseFloat(arr[index].grossWeight) || 0;
+                let purityValue = parseFloat(arr[index].karat) || 24;
+                
+                if (purityValue === 925) {
+                    arr[index].pureWeight = (gross * 0.925).toFixed(2);
+                } else {
+                    arr[index].pureWeight = (gross * (purityValue / 24)).toFixed(2);
+                }
+            }
+            renderMaterialRows(mode);
+        }
+
+        function renderMaterialRows(mode) {
+            const container = document.getElementById(mode === 'new' ? 'newOrderMaterialsContainer' : 'editOrderMaterialsContainer');
+            const totalId = mode === 'new' ? 'newOrderTotalPureDisplay' : 'editOrderTotalPureDisplay';
+            
+            if (!container) return; 
+
+            const arr = mode === 'new' ? tempNewMaterials : tempEditMaterials;
+            const safeMetalTypes = (appData.config && appData.config.metalTypes && appData.config.metalTypes.length > 0) ? appData.config.metalTypes : ['Yellow Gold', 'White Gold', 'Rose Gold', 'Platinum', 'Silver'];
+            
+            let html = '';
+            let totalPure = 0;
+
+            arr.forEach((mat, i) => {
+                totalPure += parseFloat(mat.pureWeight) || 0;
+                
+                let metalOptions = safeMetalTypes.map(m => `<option value="${m}" ${m === mat.metalType ? 'selected' : ''}>${m}</option>`).join('');
+                let kOptions = ['24','22','21','18','925'].map(k => `<option value="${k}" ${String(k) === String(mat.karat) ? 'selected' : ''}>${k === '925' ? '925 (Silver)' : k+'K'}</option>`).join('');
+
+                html += `
+                    <div class="grid grid-cols-12 gap-2 items-center p-2 bg-gray-50 border border-gray-200 rounded relative group shadow-sm">
+                        <button type="button" onclick="removeMaterialRow('${mode}', ${i})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 hover:opacity-100 transition hover:scale-110 shadow group-hover:opacity-100 z-10">&times;</button>
+                        
+                        <div class="col-span-5 sm:col-span-4">
+                            <select onchange="updateMaterialField('${mode}', ${i}, 'metalType', this.value)" class="w-full border border-gray-300 rounded p-1.5 text-xs bg-white">${metalOptions}</select>
+                        </div>
+                        <div class="col-span-3 sm:col-span-3">
+                            <select onchange="updateMaterialField('${mode}', ${i}, 'karat', this.value)" class="w-full border border-gray-300 rounded p-1.5 text-xs bg-white">${kOptions}</select>
+                        </div>
+                        <div class="col-span-4 sm:col-span-3">
+                            <input type="number" step="0.01" value="${mat.grossWeight}" placeholder="Mass (g)" oninput="updateMaterialField('${mode}', ${i}, 'grossWeight', this.value)" class="w-full border border-gray-300 rounded p-1.5 text-xs bg-white">
+                        </div>
+                        <div class="col-span-10 sm:col-span-1 text-right sm:text-center text-xs font-bold text-amber-600">
+                            <span>${mat.pureWeight}g</span>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1 text-right">
+                            <button type="button" onclick="removeMaterialRow('${mode}', ${i})" class="text-red-500 hover:text-red-700 text-sm font-bold px-1">&times;</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            const displayTotal = document.getElementById(totalId);
+            if(displayTotal) displayTotal.innerText = totalPure.toFixed(2) + ' g';
+        }
+
+        // --- LOGO MANAGEMENT ---
+        function processLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400; 
+                    let scaleSize = 1;
+                    if(img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
+                    
+                    canvas.width = img.width * scaleSize;
+                    canvas.height = img.height * scaleSize;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    appData.config.logo = canvas.toDataURL('image/png'); 
+                    saveConfigToFirebase();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function renderLogoUI() {
+            const sidebarImg = document.getElementById('sidebarLogo');
+            const previewImg = document.getElementById('logoPreview');
+            const noLogoText = document.getElementById('noLogoText');
+
+            if (appData.config.logo) {
+                if(sidebarImg) { sidebarImg.src = appData.config.logo; sidebarImg.classList.remove('hidden'); }
+                if(previewImg) { previewImg.src = appData.config.logo; previewImg.classList.remove('hidden'); noLogoText.classList.add('hidden'); }
+            } else {
+                if(sidebarImg) sidebarImg.classList.add('hidden');
+                if(previewImg) { previewImg.classList.add('hidden'); noLogoText.classList.remove('hidden'); }
+            }
+        }
+
+        // --- CONFIGURATION MANAGEMENT ---
+        function setupConfigView(type) {
+            const typeMap = { 'Departments': 'departments', 'Employees': 'employees', 'Customers': 'customers', 'Workers': 'workers', 'Jewelry': 'jewelryTypes', 'Metals': 'metalTypes'};
+            currentConfigContext = typeMap[type];
+            document.getElementById('configTitle').innerText = `Manage ${type}`;
+            document.getElementById('newConfigItem').value = '';
+            sortConfigLists(); 
+            renderConfigList();
+        }
+
+        function addConfigItem() {
+            const val = document.getElementById('newConfigItem').value.trim();
+            if (val && !appData.config[currentConfigContext].includes(val)) {
+                appData.config[currentConfigContext].push(val);
+                document.getElementById('newConfigItem').value = '';
+                
+                saveConfigToFirebase().then(() => {
+                    renderConfigList();
+                    updateAllDropdowns();
+                });
+                
+                if (currentConfigContext === 'metalTypes') {
+                    renderMaterialRows('new');
+                    if (currentEditOrder) renderMaterialRows('edit');
+                }
+            }
+        }
+
+        function deleteConfigItem(index) {
+            if (prompt("ADMINISTRATOR ACTION: Enter password to delete this configuration entry.") === "@mir1976") {
+                appData.config[currentConfigContext].splice(index, 1);
+                saveConfigToFirebase().then(() => {
+                    renderConfigList();
+                    updateAllDropdowns();
+                });
+            } else {
+                alert("Error: Incorrect password.");
+            }
+        }
+
+        function editConfigItem(index) {
+            const oldName = appData.config[currentConfigContext][index];
+            const newName = prompt(`Rename "${oldName}"\n\nWarning: This will automatically update all existing orders linked to this name.`, oldName);
+
+            if (newName !== null) {
+                const trimmedName = newName.trim();
+                if (trimmedName !== '' && trimmedName !== oldName) {
+                    
+                    if (appData.config[currentConfigContext].includes(trimmedName)) {
+                        alert("That name already exists in the list.");
+                        return;
+                    }
+
+                    appData.config[currentConfigContext][index] = trimmedName;
+                    
+                    saveConfigToFirebase().then(() => {
+                        renderConfigList();
+                        updateAllDropdowns();
+                    });
+
+                    appData.orders.forEach(order => {
+                        let changed = false;
+                        if (currentConfigContext === 'customers' && order.customer === oldName) {
+                            order.customer = trimmedName; changed = true;
+                        }
+                        else if (currentConfigContext === 'employees' && order.employee === oldName) {
+                            order.employee = trimmedName; changed = true;
+                        }
+                        else if (currentConfigContext === 'departments' && order.department === oldName) {
+                            order.department = trimmedName; changed = true;
+                        }
+                        else if (currentConfigContext === 'workers' && order.worker === oldName) {
+                            order.worker = trimmedName; changed = true;
+                        }
+                        else if (currentConfigContext === 'jewelryTypes') {
+                            if (order.jewelryTypes && Array.isArray(order.jewelryTypes)) {
+                                const jIndex = order.jewelryTypes.indexOf(oldName);
+                                if (jIndex !== -1) { order.jewelryTypes[jIndex] = trimmedName; changed = true; }
+                            }
+                        }
+                        else if (currentConfigContext === 'metalTypes') {
+                            if (order.materials && Array.isArray(order.materials)) {
+                                order.materials.forEach(mat => {
+                                    if (mat.metalType === oldName) { mat.metalType = trimmedName; changed = true; }
+                                });
+                            }
+                        }
+                        
+                        if(changed) saveOrderToFirebase(order);
+                    });
+                }
+            }
+        }
+
+        function renderConfigList() {
+            const list = document.getElementById('configList');
+            list.innerHTML = '';
+            appData.config[currentConfigContext].forEach((item, index) => {
+                list.innerHTML += `
+                    <li class="flex justify-between items-center p-3 hover:bg-gray-100 transition text-xs sm:text-sm">
+                        <span class="font-medium text-gray-700">${item}</span>
+                        <div class="space-x-1 flex">
+                            <button onclick="editConfigItem(${index})" class="text-blue-500 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50 font-bold transition">Edit</button>
+                            <button onclick="deleteConfigItem(${index})" class="text-red-500 px-2 py-1 border border-red-200 rounded hover:bg-red-50 font-bold transition">Remove</button>
+                        </div>
+                    </li>`;
+            });
+        }
+
+        function updateAllDropdowns() {
+            const populate = (selectId, dataArray) => {
+                const select = document.getElementById(selectId);
+                if(select) {
+                    select.innerHTML = '';
+                    if (dataArray && Array.isArray(dataArray)) {
+                        dataArray.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`);
+                    }
+                }
+            };
+            populate('orderDept', appData.config.departments);
+            populate('editDept', appData.config.departments);
+            populate('orderEmployee', appData.config.employees);
+            populate('orderCustomer', appData.config.customers);
+            populate('editCustomer', appData.config.customers); 
+            populate('orderWorker', appData.config.workers);
+            populate('editWorker', appData.config.workers);
+            populate('orderJewelryType', appData.config.jewelryTypes);
+            updatePDFDropdown();
+        }
+
+        function updatePDFDropdown() {
+            const select = document.getElementById('pdfOrderSelect');
+            if(select) {
+                select.innerHTML = '<option value="">-- Choose an Order --</option>';
+                appData.orders.forEach(order => {
+                    select.innerHTML += `<option value="${order.id}">#${order.orderNumber} - ${order.customer} (${order.status})</option>`;
+                });
+            }
+        }
+
+        // Dynamically build a list of all emails that have interacted with orders
+        function updateExcelEmployeeDropdown() {
+            const select = document.getElementById('excelEmployee');
+            if(!select) return;
+            
+            const currentSelection = select.value;
+            select.innerHTML = '<option value="All">All Users / Everyone</option>';
+            
+            const uniqueEmails = new Set();
+            appData.orders.forEach(order => {
+                if (order.loggedByEmail) uniqueEmails.add(order.loggedByEmail);
+                if (order.lastModifiedBy) uniqueEmails.add(order.lastModifiedBy);
+            });
+            
+            Array.from(uniqueEmails).sort().forEach(email => {
+                select.innerHTML += `<option value="${email}">${email}</option>`;
+            });
+            
+            if (Array.from(uniqueEmails).includes(currentSelection)) {
+                select.value = currentSelection;
+            }
+        }
+
+        // --- IMAGE COMPRESSION & HANDLING ---
+        function processImages(event, mode) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 300; 
+                        let scaleSize = 1;
+                        if(img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = img.width * scaleSize;
+                        canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const base64Compressed = canvas.toDataURL('image/jpeg', 0.4); 
+                        if (mode === 'new') {
+                            tempNewPhotos.push(base64Compressed);
+                            renderNewOrderPhotos();
+                        } else if (mode === 'edit') {
+                            currentEditOrder.photos.push(base64Compressed);
+                            renderEditOrderPhotos();
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = ''; 
+        }
+
+        function renderNewOrderPhotos() {
+            const container = document.getElementById('newOrderPhotoPreview');
+            container.innerHTML = '';
+            tempNewPhotos.forEach((photo, index) => {
+                container.innerHTML += `
+                    <div class="relative group shrink-0">
+                        <img src="${photo}" class="h-14 w-14 object-cover rounded shadow border">
+                        <button type="button" onclick="removePhoto('new', ${index})" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">&times;</button>
+                    </div>`;
+            });
+        }
+
+        function renderEditOrderPhotos() {
+            const gallery = document.getElementById('editOrderPhotoGallery');
+            if (!gallery) return;
+            gallery.innerHTML = '';
+            if(!currentEditOrder.photos || currentEditOrder.photos.length === 0) {
+                gallery.innerHTML = '<span class="text-gray-400 text-xs italic">No visual attachments.</span>'; 
+                return;
+            }
+            currentEditOrder.photos.forEach((photo, index) => {
+                gallery.innerHTML += `
+                    <div class="relative group shrink-0">
+                        <img src="${photo}" onclick="openImageViewerFromEdit(${index})" class="h-16 w-16 object-cover rounded border cursor-pointer hover:opacity-90">
+                        <button type="button" onclick="removePhoto('edit', ${index})" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center shadow">&times;</button>
+                    </div>`;
+            });
+        }
+
+        function removePhoto(mode, index) {
+            if (mode === 'new') {
+                tempNewPhotos.splice(index, 1);
+                renderNewOrderPhotos();
+            } else if (mode === 'edit') {
+                currentEditOrder.photos.splice(index, 1);
+                renderEditOrderPhotos();
+            }
+        }
+
+        // --- CREATING ORDERS (Now with Audit Trails) ---
+        function saveNewOrder(event) {
+            event.preventDefault();
+            
+            const jewelrySelect = document.getElementById('orderJewelryType');
+            let selectedJewelry = [];
+            if (jewelrySelect) {
+                selectedJewelry = Array.from(jewelrySelect.selectedOptions).map(opt => opt.value);
+            }
+
+            const currentDate = new Date().toISOString().split('T')[0];
+            const startDateEl = document.getElementById('orderStartDate');
+            const startDateValue = (startDateEl && startDateEl.value) ? startDateEl.value : "Not Started";
+
+            const safeGet = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+
+            const newOrder = {
+                id: Date.now().toString(),
+                orderNumber: safeGet('orderNumber'),
+                date: safeGet('orderDate'),
+                description: safeGet('orderDesc'),
+                jewelryTypes: selectedJewelry,
+                customer: safeGet('orderCustomer'),
+                employee: safeGet('orderEmployee'),
+                
+                materials: JSON.parse(JSON.stringify(tempNewMaterials)),
+                
+                startDate: startDateValue,
+                department: safeGet('orderDept'),
+                worker: safeGet('orderWorker'),
+                status: safeGet('orderStatus'),
+                statusDate: currentDate,
+                notes: safeGet('orderNotes'),
+                photos: [...tempNewPhotos],
+                
+                // Security / Audit Trail additions
+                loggedByEmail: loggedInEmail,
+                lastModifiedBy: loggedInEmail,
+                lastModifiedDate: new Date().toISOString()
+            };
+            
+            saveOrderToFirebase(newOrder).then(() => {
+                const form = document.getElementById('orderForm');
+                if (form) form.reset();
+                
+                tempNewPhotos = [];
+                tempNewMaterials = []; 
+                renderNewOrderPhotos();
+                addMaterialRow('new'); 
+                
+                const dateInput = document.getElementById('orderDate');
+                if(dateInput) dateInput.valueAsDate = new Date();
+                
+                const pureDisp = document.getElementById('newOrderTotalPureDisplay');
+                if(pureDisp) pureDisp.innerText = '0.00 g';
+                
+                switchTab('dashboard');
+            });
+        }
+
+        // --- DASHBOARD RENDER & INTELLIGENCE ---
+        function updateStatusCounters() {
+            let metrics = {
+                total: {c:0, au:0, ag:0},
+                pending: {c:0, au:0, ag:0},
+                inProgress: {c:0, au:0, ag:0},
+                completed: {c:0, au:0, ag:0},
+                canceled: {c:0, au:0, ag:0}
+            };
+            
+            appData.orders.forEach(o => {
+                let mats = getMaterialsFromOrder(o);
+                let hasAu = mats.some(m => m.metalType.toLowerCase().includes('gold') || m.metalType.toLowerCase().includes('platinum'));
+                let hasAg = mats.some(m => m.metalType.toLowerCase().includes('silver'));
+
+                // Global Count
+                metrics.total.c++;
+                if(hasAu) metrics.total.au++;
+                if(hasAg) metrics.total.ag++;
+
+                // Status Count
+                let statKey = '';
+                if (o.status === "Pending") statKey = 'pending';
+                else if (o.status === "In Progress") statKey = 'inProgress';
+                else if (o.status === "Completed") statKey = 'completed';
+                else if (o.status === "Canceled") statKey = 'canceled';
+
+                if (statKey) {
+                    metrics[statKey].c++;
+                    if(hasAu) metrics[statKey].au++;
+                    if(hasAg) metrics[statKey].ag++;
+                }
+            });
+
+            // Update DOM Elements
+            const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+            
+            safeSet('countTotal', metrics.total.c); safeSet('totalAu', metrics.total.au); safeSet('totalAg', metrics.total.ag);
+            safeSet('countPending', metrics.pending.c); safeSet('pendingAu', metrics.pending.au); safeSet('pendingAg', metrics.pending.ag);
+            safeSet('countInProgress', metrics.inProgress.c); safeSet('inProgressAu', metrics.inProgress.au); safeSet('inProgressAg', metrics.inProgress.ag);
+            safeSet('countCompleted', metrics.completed.c); safeSet('completedAu', metrics.completed.au); safeSet('completedAg', metrics.completed.ag);
+            safeSet('countCanceled', metrics.canceled.c); safeSet('canceledAu', metrics.canceled.au); safeSet('canceledAg', metrics.canceled.ag);
+        }
+
+        function renderDashboard() {
+            updateStatusCounters();
+
+            const listTbody = document.getElementById('ordersTableBody');
+            const mBody = document.getElementById('ordersMobileListBody');
+            const gridContainer = document.getElementById('gridContainer');
+            
+            if(!listTbody || !mBody || !gridContainer) return;
+            
+            listTbody.innerHTML = ''; 
+            mBody.innerHTML = '';
+            gridContainer.innerHTML = '';
+
+            const statusFilterDropdown = document.getElementById('statusFilter');
+            const filterValue = statusFilterDropdown ? statusFilterDropdown.value : 'All';
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const dateSortDropdown = document.getElementById('dateSort');
+            const sortOrder = dateSortDropdown ? dateSortDropdown.value : 'newest';
+
+            let filteredOrders = appData.orders.filter(order => {
+                const matchesStatus = (filterValue === 'All') || (order.status === filterValue);
+                const matchesSearch = searchTerm === '' || 
+                    (order.orderNumber && order.orderNumber.toLowerCase().includes(searchTerm)) ||
+                    (order.customer && order.customer.toLowerCase().includes(searchTerm)) ||
+                    (order.employee && order.employee.toLowerCase().includes(searchTerm)) ||
+                    (order.department && order.department.toLowerCase().includes(searchTerm));
+                return matchesStatus && matchesSearch;
+            });
+
+            filteredOrders.sort((a, b) => {
+                const timeA = (a.date && !isNaN(new Date(a.date).getTime())) ? new Date(a.date).getTime() : 0;
+                const timeB = (b.date && !isNaN(new Date(b.date).getTime())) ? new Date(b.date).getTime() : 0;
+                if (sortOrder === 'newest') return timeB - timeA;
+                else return timeA - timeB;
+            });
+
+            if (filteredOrders.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('listContainer').classList.add('hidden');
+                document.getElementById('gridContainer').classList.add('hidden');
+                return;
+            } else {
+                document.getElementById('emptyState').classList.add('hidden');
+                if(currentViewMode === 'list') {
+                    document.getElementById('listContainer').classList.remove('hidden');
+                } else {
+                    document.getElementById('gridContainer').classList.remove('hidden');
+                }
+            }
+
+            filteredOrders.forEach((order) => {
+                let statusColor = "bg-gray-200 text-gray-800";
+                if(order.status === "Completed") statusColor = "bg-green-100 text-green-800";
+                if(order.status === "In Progress") statusColor = "bg-blue-100 text-blue-800";
+                if(order.status === "Pending") statusColor = "bg-yellow-100 text-yellow-800";
+                if(order.status === "Canceled") statusColor = "bg-red-100 text-red-800";
+
+                const startDisplay = (!order.startDate || order.startDate === "Not Started") ? "Pending" : order.startDate;
+                const safeNotes = order.notes ? order.notes.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                
+                let notesHtml = order.notes ? `
+                    <div class="relative group mt-1.5 w-max max-w-full z-10">
+                        <div class="text-[10px] bg-red-50 text-red-700 border border-red-200 px-1.5 py-1 rounded font-bold flex items-center gap-1.5 cursor-help shadow-sm">
+                            <span class="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse shrink-0"></span>
+                            <span class="truncate max-w-[120px] sm:max-w-[150px]">🚨 ${safeNotes}</span>
+                        </div>
+                        <div class="absolute z-[100] left-0 bottom-full mb-2 hidden group-hover:block w-64 p-3 bg-red-900 text-white text-xs rounded shadow-2xl whitespace-normal break-words leading-relaxed border border-red-700">
+                            <span class="font-bold text-red-300 mb-1 block">⚠️ Important Directive:</span>
+                            ${safeNotes}
+                            <div class="absolute top-full left-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-red-900"></div>
+                        </div>
+                    </div>` : '';
+
+                const materialsArray = getMaterialsFromOrder(order);
+                let matsHtml = materialsArray.map(m => {
+                    let pDisp = m.karat === '925' ? '925' : m.karat+'K';
+                    return `<div class="mb-1 border-b border-gray-200 pb-1 last:border-0 last:mb-0 last:pb-0">
+                                <span class="font-semibold text-slate-700 text-[11px] block">${m.metalType} <span class="text-gray-500">${pDisp}</span></span>
+                                <span class="text-[10px] text-slate-600 tracking-tight">G: <b>${m.grossWeight || 0}g</b> | P: <b class="text-amber-600">${m.pureWeight || 0}g</b></span>
+                            </div>`;
+                }).join('');
+                
+                let totalPureCalc = materialsArray.reduce((sum, m) => sum + (parseFloat(m.pureWeight)||0), 0).toFixed(2);
+
+                let imgHtml = `<div class="w-10 h-10 bg-gray-100 rounded border flex items-center justify-center text-gray-400 text-[10px]">None</div>`;
+                if(order.photos && order.photos.length > 0) {
+                    imgHtml = `<img src="${order.photos[0]}" onclick="openImageViewer('${order.id}')" class="w-10 h-10 object-cover rounded border shadow-sm cursor-pointer hover:opacity-80">`;
+                }
+                
+                const auditHtml = order.lastModifiedBy ? `<span class="block text-[9px] text-blue-500 mt-1 uppercase font-bold tracking-tight">👤 ${order.lastModifiedBy}</span>` : '';
+
+                // Desktop Table View
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-gray-50/80 transition text-xs";
+                tr.innerHTML = `
+                    <td class="p-3">${imgHtml}</td>
+                    <td class="p-3 font-bold text-gray-900">#${order.orderNumber}</td>
+                    <td class="p-3 leading-tight text-gray-600">Reg: ${order.date}<br><span class="text-blue-600">Start: ${startDisplay}</span></td>
+                    <td class="p-3">
+                        <span class="font-medium text-gray-800 block">${order.customer}</span>
+                        <span class="text-[10px] text-gray-500 uppercase tracking-wider font-bold block mt-0.5">Rep: ${order.employee || 'N/A'}</span>
+                    </td>
+                    <td class="p-3 leading-tight"><b class="text-blue-700 block">${order.department}</b><span class="text-gray-500">Artisan: ${order.worker}</span>${notesHtml}</td>
+                    <td class="p-3"><div class="bg-gray-50 p-1.5 rounded border border-gray-200">${matsHtml}</div></td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wide ${statusColor}">${order.status}</span>
+                        <span class="block text-[10px] text-slate-600 mt-1.5 font-bold tracking-tight">📅 Upd: ${order.statusDate || order.date || 'N/A'}</span>
+                        ${auditHtml}
+                    </td>
+                    <td class="p-3 text-right space-x-1 flex justify-end">
+                        <button onclick="sendWhatsApp('${order.customer}')" class="text-green-600 px-2 py-1 border border-green-200 rounded hover:bg-green-50 font-bold transition">Chat</button>
+                        <button onclick="generateOrderPDF('${order.id}')" class="text-red-600 px-2 py-1 border border-red-200 rounded hover:bg-red-50 font-bold transition">PDF</button>
+                        <button onclick="openEditModal('${order.id}')" class="text-blue-600 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50 font-bold transition">Edit</button>
+                        ${currentUserRole === 'Admin' ? `<button onclick="attemptDelete('${order.id}')" class="flex-none px-3 py-2 text-center border border-red-200 text-red-500 text-xs font-bold rounded bg-white transition">Del</button>` : ''}
+                    </td>`;
+                listTbody.appendChild(tr);
+
+                // Responsive Mobile Stack Container
+                const mDiv = document.createElement('div');
+                mDiv.className = "p-4 flex flex-col gap-2 bg-white hover:bg-gray-50/50 transition relative";
+                mDiv.innerHTML = `
+                    <div class="flex gap-3 items-start">
+                        <div class="shrink-0 mt-0.5">${imgHtml}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <h4 class="font-bold text-gray-900 text-sm">#${order.orderNumber}</h4>
+                                <span class="px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wide ${statusColor}">${order.status}</span>
+                            </div>
+                            <p class="text-xs text-gray-700 font-semibold truncate">Client: ${order.customer}</p>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider truncate">Rep: ${order.employee || 'N/A'}</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Reg: ${order.date} &bull; Start: ${startDisplay}</p>
+                            <p class="text-[11px] text-slate-600 font-bold mt-0.5">📅 Status Update: ${order.statusDate || order.date || 'N/A'}</p>
+                            ${auditHtml}
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-2 rounded border border-gray-100 text-xs">
+                        <div class="font-bold text-blue-700">${order.department}</div>
+                        <div class="text-gray-500 text-[11px]">Artisan: ${order.worker}</div>
+                        ${notesHtml}
+                    </div>
+                    <div class="border border-gray-150 rounded p-2 bg-slate-50/50">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Material Net Total Allocation: ${totalPureCalc}g</div>
+                        <div class="space-y-1">${matsHtml}</div>
+                    </div>
+                    <div class="flex gap-1 mt-1">
+                        <button onclick="sendWhatsApp('${order.customer}')" class="flex-1 py-2 text-center border border-green-200 text-green-600 text-xs font-bold rounded bg-white transition hover:bg-green-50">Chat</button>
+                        <button onclick="generateOrderPDF('${order.id}')" class="flex-1 py-2 text-center border border-red-200 text-red-600 text-xs font-bold rounded bg-white transition hover:bg-red-50">PDF</button>
+                        <button onclick="openEditModal('${order.id}')" class="flex-1 py-2 text-center border border-blue-200 text-blue-600 text-xs font-bold rounded bg-white transition hover:bg-blue-50">Edit</button>
+                        ${currentUserRole === 'Admin' ? `<button onclick="attemptDelete('${order.id}')" class="flex-none px-3 py-2 text-center border border-red-200 text-red-500 text-xs font-bold rounded bg-white transition hover:bg-red-50">Del</button>` : ''}
+                    </div>`;
+                mBody.appendChild(mDiv);
+
+                // Grid View
+                const gCard = document.createElement('div');
+                gCard.className = "bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden";
+                let gImg = `<div class="h-40 w-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs border-b">No Attached Image Matrix File</div>`;
+                if(order.photos && order.photos.length > 0) {
+                    gImg = `<img src="${order.photos[0]}" onclick="openImageViewer('${order.id}')" class="h-40 w-full object-cover border-b cursor-pointer hover:opacity-90">`;
+                }
+                gCard.innerHTML = `
+                    ${gImg}
+                    <div class="p-3 flex-1 flex flex-col gap-2">
+                        <div class="flex justify-between items-start">
+                            <div class="min-w-0 pr-2">
+                                <span class="font-bold text-gray-900 block leading-none truncate text-sm">#${order.orderNumber}</span>
+                                <p class="text-[11px] text-gray-700 font-semibold truncate mt-1">Client: ${order.customer}</p>
+                                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider truncate mt-0.5">Rep: ${order.employee || 'N/A'}</p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wide ${statusColor} block">${order.status}</span>
+                                <span class="block text-[9px] text-slate-600 mt-1 font-bold tracking-tight">📅 Upd: ${order.statusDate || order.date || 'N/A'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-[10px] text-gray-500 flex justify-between border-y border-gray-100 py-1.5">
+                            <span>Reg: ${order.date}</span>
+                            <span class="text-blue-600 font-medium">Start: ${startDisplay}</span>
+                        </div>
+
+                        <div class="text-[11px] text-gray-600 leading-tight">
+                            <span class="block font-bold text-blue-700">${order.department}</span>
+                            <span class="text-gray-500">Artisan: ${order.worker}</span>
+                            ${notesHtml}
+                        </div>
+                        
+                        <div class="bg-gray-50 p-1.5 rounded border border-gray-200 text-[11px] mt-auto">
+                            <div class="font-bold text-gray-500 text-[9px] uppercase mb-0.5">Allocations (Net Pure: ${totalPureCalc}g)</div>
+                            ${matsHtml}
+                        </div>
+                        ${auditHtml}
+                    </div>
+                    <div class="p-2 bg-gray-50 border-t flex gap-1">
+                        <button onclick="sendWhatsApp('${order.customer}')" class="flex-1 py-1 text-center bg-white border border-green-200 text-green-600 text-xs font-bold rounded transition hover:bg-green-50">Chat</button>
+                        <button onclick="generateOrderPDF('${order.id}')" class="flex-1 py-1 text-center bg-white border border-red-200 text-red-600 text-xs font-bold rounded transition hover:bg-red-50">PDF</button>
+                        <button onclick="openEditModal('${order.id}')" class="flex-1 py-1 text-center bg-white border border-blue-200 text-blue-600 text-xs font-bold rounded transition hover:bg-blue-50">Edit</button>
+                        ${currentUserRole === 'Admin' ? `<button onclick="attemptDelete('${order.id}')" class="flex-none px-3 py-2 text-center border border-red-200 text-red-500 text-xs font-bold rounded bg-white transition hover:bg-red-50">Del</button>` : ''}
+                    </div>`;
+                gridContainer.appendChild(gCard);
+            });
+        }
+
+        // --- WHATSAPP COMMUNICATION ---
+        function sendWhatsApp(customerName) {
+            // Since we haven't added phone fields to the config yet, we will open Web WhatsApp 
+            // with a pre-filled message, allowing the user to select the contact manually from their WhatsApp app.
+            const message = encodeURIComponent(`Hello ${customerName}, we have an update regarding your production order.`);
+            window.open(`https://wa.me/?text=${message}`, '_blank');
+        }
+
+        // --- SECURE DELETION OPERATION ---
+        function attemptDelete(orderId) {
+            if (prompt("ADMINISTRATOR ACTION: Enter password to delete order.") === "@mir1976") {
+                deleteOrderFromFirebase(orderId);
+            } else { 
+                alert("Error: Incorrect password."); 
+            }
+        }
+
+        // --- EDITING LOGIC (Now with Audit Trails) ---
+        function openEditModal(orderId) {
+            try {
+                const originalOrder = appData.orders.find(o => String(o.id) === String(orderId));
+                if (!originalOrder) {
+                    alert("Error finding order. Please try refreshing the page.");
+                    return;
+                }
+
+                currentEditOrder = JSON.parse(JSON.stringify(originalOrder));
+                
+                const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+                
+                const disp = document.getElementById('editOrderNumberDisplay');
+                if (disp) disp.innerText = currentEditOrder.orderNumber || '';
+                
+                safeSet('editStartDate', (currentEditOrder.startDate && currentEditOrder.startDate !== "Not Started") ? currentEditOrder.startDate : "");
+                safeSet('editDept', currentEditOrder.department || '');
+                safeSet('editWorker', currentEditOrder.worker || '');
+                safeSet('editStatus', currentEditOrder.status || '');
+                safeSet('editCustomer', currentEditOrder.customer || '');
+                safeSet('editNotes', currentEditOrder.notes || '');
+                safeSet('editDesc', currentEditOrder.description || ''); 
+                
+                tempEditMaterials = getMaterialsFromOrder(currentEditOrder);
+                
+                if (!tempEditMaterials || tempEditMaterials.length === 0) {
+                    const safeMetalTypes = (appData.config && appData.config.metalTypes && appData.config.metalTypes.length > 0) ? appData.config.metalTypes : ['Yellow Gold'];
+                    tempEditMaterials.push({ metalType: safeMetalTypes[0], karat: '24', grossWeight: '', pureWeight: '0.00' });
+                }
+
+                renderMaterialRows('edit');
+                renderEditOrderPhotos(); 
+                
+                const modal = document.getElementById('editModal');
+                if(modal) modal.classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Error opening edit modal:", err);
+                alert("System Error in Edit Menu: " + err.message + "\nPlease contact support if this persists.");
+            }
+        }
+
+        function closeEditModal() { 
+            const modal = document.getElementById('editModal');
+            if(modal) modal.classList.add('hidden'); 
+            currentEditOrder = null; 
+            tempEditMaterials = []; 
+        }
+
+        function saveEditChanges() {
+            const safeGet = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+            
+            currentEditOrder.startDate = safeGet('editStartDate') || "Not Started";
+            currentEditOrder.department = safeGet('editDept');
+            currentEditOrder.worker = safeGet('editWorker');
+            currentEditOrder.status = safeGet('editStatus');
+            currentEditOrder.customer = safeGet('editCustomer');
+            currentEditOrder.notes = safeGet('editNotes');
+            currentEditOrder.description = safeGet('editDesc'); 
+            
+            currentEditOrder.materials = JSON.parse(JSON.stringify(tempEditMaterials));
+            
+            delete currentEditOrder.metalType;
+            delete currentEditOrder.karat;
+            delete currentEditOrder.grossWeight;
+            delete currentEditOrder.pureWeight;
+
+            currentEditOrder.statusDate = new Date().toISOString().split('T')[0];
+            
+            // Audit Trail additions
+            currentEditOrder.lastModifiedBy = loggedInEmail;
+            currentEditOrder.lastModifiedDate = new Date().toISOString();
+            
+            saveOrderToFirebase(currentEditOrder).then(() => {
+                closeEditModal(); 
+            });
+        }
+
+        let zoomLevel = 1;
+        let isDragging = false;
+        let startX = 0, startY = 0, translateX = 0, translateY = 0;
+        
+        function initZoomAndPan() {
+            const img = document.getElementById('viewerMainImage');
+            const container = document.getElementById('imageViewer');
+            if(!img || !container) return;
+            
+            img.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                zoomLevel += e.deltaY * -0.002;
+                zoomLevel = Math.min(Math.max(0.5, zoomLevel), 8); 
+                applyTransform();
+            });
+
+            img.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                img.classList.remove('cursor-grab', 'transition-transform', 'duration-75');
+                img.classList.add('cursor-grabbing');
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                img.classList.remove('cursor-grabbing');
+                img.classList.add('cursor-grab', 'transition-transform', 'duration-75');
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                applyTransform();
+            });
+        }
+
+        function applyTransform() {
+            const img = document.getElementById('viewerMainImage');
+            if(img) img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomLevel})`;
+        }
+
+        function openImageViewer(orderId) { setupViewer(appData.orders.find(o => String(o.id) === String(orderId)).photos, 0); }
+        function openImageViewerFromEdit(startIndex) { setupViewer(currentEditOrder.photos, startIndex); }
+        function setupViewer(photoArray, startIndex) {
+            if (!photoArray || photoArray.length === 0) return;
+            const viewer = document.getElementById('imageViewer');
+            const gallery = document.getElementById('viewerGallery');
+            const mainImg = document.getElementById('viewerMainImage');
+            
+            if(mainImg) mainImg.src = photoArray[startIndex];
+            
+            zoomLevel = 1; translateX = 0; translateY = 0;
+            applyTransform();
+
+            if(gallery) {
+                gallery.innerHTML = '';
+                if (photoArray.length > 1) {
+                    photoArray.forEach(photoBase64 => {
+                        gallery.innerHTML += `<img src="${photoBase64}" onclick="document.getElementById('viewerMainImage').src = this.src; zoomLevel = 1; translateX = 0; translateY = 0; document.getElementById('viewerMainImage').style.transform = 'translate(0px, 0px) scale(1)';" class="w-20 h-20 object-cover rounded cursor-pointer border-2 border-transparent hover:border-white opacity-70 hover:opacity-100 transition shrink-0">`;
+                    });
+                }
+            }
+            if(viewer) viewer.classList.remove('hidden');
+        }
+        function closeImageViewer() { 
+            const viewer = document.getElementById('imageViewer');
+            if(viewer) viewer.classList.add('hidden'); 
+        }
+
+        function exportData() {
+            const b = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href = url;
+            a.download = `markasti_system_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+        
+        async function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const r = new FileReader();
+            r.onload = async function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    let ordersToRestore = [];
+                    let configToRestore = null;
+
+                    if (Array.isArray(parsed)) {
+                        ordersToRestore = parsed;
+                    } else if (parsed.orders && Array.isArray(parsed.orders)) {
+                        ordersToRestore = parsed.orders;
+                        if (parsed.config) configToRestore = parsed.config;
+                    } else {
+                        alert("Restoration Failed: The JSON file structure is unrecognized or corrupted.");
+                        return;
+                    }
+
+                    const totalOrders = ordersToRestore.length;
+                    let restoreOrders = false;
+                    let restoreConfig = false;
+
+                    if (totalOrders > 0) {
+                        restoreOrders = confirm(`Found ${totalOrders} orders in this backup.\n\nDo you want to RESTORE ORDERS to the live database?`);
+                    }
+                    if (configToRestore) {
+                        restoreConfig = confirm(`This backup also contains Configuration Lists (Customers, Employees, Metals, etc.).\n\nDo you want to OVERWRITE your current live lists with the lists from this backup?`);
+                    }
+
+                    if (!restoreOrders && !restoreConfig) {
+                        alert("Restoration canceled. No data was changed.");
+                        return;
+                    }
+                    
+                    const statusElement = document.getElementById('cloudStatus');
+                    if (restoreConfig && configToRestore) {
+                        appData.config = configToRestore;
+                        await db.collection('settings').doc('config').set(configToRestore);
+                    }
+                    if (restoreOrders && totalOrders > 0) {
+                        let successCount = 0;
+                        for (let i = 0; i < totalOrders; i++) {
+                            const order = ordersToRestore[i];
+                            try {
+                                await db.collection('orders').doc(order.id).set(order);
+                                successCount++;
+                            } catch (orderError) {
+                                console.error(`Failed on order #${order.orderNumber}:`, orderError);
+                            }
+                        }
+                        alert(`Successfully synced ${successCount} orders.`);
+                    }
+                } catch(err) { 
+                    alert("File processing failed: " + err.message); 
+                }
+            };
+            r.readAsText(file);
+            e.target.value = '';
+        }
+
+        // --- ENHANCED EXCEL REPORTS (With User Filtering) ---
+        function exportFilteredExcel() {
+            const startStr = document.getElementById('excelStartDate').value;
+            const endStr = document.getElementById('excelEndDate').value;
+            const employeeFilter = document.getElementById('excelEmployee').value;
+            
+            if(!startStr || !endStr) return alert("Please select both a start and end date.");
+
+            const filteredOrders = appData.orders.filter(order => {
+                const d1 = order.date;
+                const d2 = order.statusDate || order.date;
+                const matchesDate = (d1 >= startStr && d1 <= endStr) || (d2 >= startStr && d2 <= endStr);
+                
+                const matchesEmployee = (employeeFilter === "All") || 
+                                        (order.loggedByEmail === employeeFilter) || 
+                                        (order.lastModifiedBy === employeeFilter);
+                                        
+                return matchesDate && matchesEmployee;
+            });
+
+            if (filteredOrders.length === 0) return alert("No orders found matching those dates and user parameters.");
+
+            const excelData = filteredOrders.map(order => {
+                const mats = getMaterialsFromOrder(order);
+                let matsString = mats.map(m => `${m.metalType} ${m.karat==='925'?'925':m.karat+'K'} (Gross: ${m.grossWeight||0}g, Pure: ${m.pureWeight||0}g)`).join(" + ");
+                let totalPureEx = mats.reduce((sum, m) => sum + (parseFloat(m.pureWeight)||0), 0).toFixed(2);
+
+                return {
+                    "Order Number": order.orderNumber,
+                    "Submit Date": order.date,
+                    "Start Date": order.startDate || "Not Started",
+                    "Assigned Employee": order.employee,
+                    "Customer": order.customer,
+                    "Types": order.jewelryTypes ? order.jewelryTypes.join(', ') : '',
+                    "Description": order.description,
+                    "Materials Details": matsString,
+                    "Total Pure Weight (g)": totalPureEx,
+                    "Current Department": order.department,
+                    "Assigned Worker": order.worker,
+                    "Status": order.status,
+                    "Status Update Date": order.statusDate || order.date,
+                    "Notes": order.notes,
+                    "Last Modified By (Email)": order.lastModifiedBy || "System Admin"
+                }
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Report");
+            XLSX.writeFile(workbook, `Markasti_Audit_${startStr}_to_${endStr}.xlsx`);
+        }
+
+        function generatePDFFromSelect() {
+            const orderId = document.getElementById('pdfOrderSelect').value;
+            if(!orderId) return alert("Please select an order from the dropdown.");
+            generateOrderPDF(orderId);
+        }
+
+        function generateOrderPDF(orderId) {
+            const order = appData.orders.find(o => String(o.id) === String(orderId));
+            if(!order) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFont("helvetica");
+            let y = 15;
+
+            if (appData.config.logo) {
+                try {
+                    const imgW = 40; 
+                    const img = new Image();
+                    img.src = appData.config.logo;
+                    const imgH = (img.height / img.width) * imgW;
+                    doc.addImage(appData.config.logo, 'PNG', 105 - (imgW / 2), y, imgW, imgH);
+                    y += imgH + 10;
+                } catch (e) { y += 10; }
+            } else {
+                doc.setFontSize(22); doc.setTextColor(200, 160, 40); doc.text("MARKASTI", 105, y, null, null, "center"); y += 10;
+            }
+
+            doc.setFontSize(14); doc.setTextColor(100, 100, 100); doc.text("Order Production Document", 105, y, null, null, "center"); y += 15;
+            doc.setFontSize(12); doc.setTextColor(0, 0, 0);
+            doc.text(`Order Number: ${order.orderNumber}`, 20, y); doc.text(`Date Submitted: ${order.date}`, 120, y); y += 10;
+            doc.text(`Customer: ${order.customer}`, 20, y); doc.text(`Start Date: ${order.startDate || "Not Started"}`, 120, y); y += 10;
+            doc.text(`Jewelry Types: ${order.jewelryTypes ? order.jewelryTypes.join(', ') : 'N/A'}`, 20, y); y += 15;
+
+            doc.setDrawColor(200, 200, 200); doc.line(20, y, 190, y); y += 10;
+            doc.setFontSize(14); doc.text("Manufacturing Specs & Routing", 20, y); y += 10;
+            doc.setFontSize(11);
+            doc.text(`Current Dept: ${order.department || 'N/A'}`, 20, y); doc.text(`Worker: ${order.worker || 'N/A'}`, 120, y); y += 10;
+            doc.text(`Status: ${order.status}`, 20, y); doc.text(`Status Date: ${order.statusDate || order.date}`, 120, y); y += 10;
+            
+            if (order.description) {
+                const descLines = doc.splitTextToSize(`Description: ${order.description}`, 170); doc.text(descLines, 20, y); y += (descLines.length * 6);
+            }
+            if (order.notes) {
+                const noteLines = doc.splitTextToSize(`Dept Notes: ${order.notes}`, 170); doc.text(noteLines, 20, y); y += (noteLines.length * 6);
+            }
+
+            y += 5; doc.line(20, y, 190, y); y += 10;
+            doc.setFontSize(14); doc.text("Materials Details", 20, y); y += 8;
+            doc.setFontSize(10);
+            const mats = getMaterialsFromOrder(order); let totalPurePDF = 0;
+            
+            mats.forEach((mat) => {
+                let pDisp = mat.karat === '925' ? '925' : mat.karat+'K';
+                doc.text(`- ${mat.metalType} (${pDisp}):`, 20, y);
+                doc.text(`Gross: ${mat.grossWeight || 0} g   |   Pure: ${mat.pureWeight || 0} g`, 70, y);
+                totalPurePDF += parseFloat(mat.pureWeight) || 0; y += 6;
+            });
+            
+            if (mats.length > 1) {
+                y += 2; doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text(`Total Pure 999 Equiv: ${totalPurePDF.toFixed(2)} g`, 70, y); doc.setFont("helvetica", "normal"); y += 8;
+            } else { y += 4; }
+
+            if (order.photos && order.photos.length > 0) {
+                doc.line(20, y, 190, y); y += 10; doc.setFontSize(14); doc.text("Order Photos", 20, y); y += 10;
+                const imgWidth = 80; const imgHeight = 80; let x = 20;
+                order.photos.forEach((photo) => {
+                    if (y + imgHeight > 280) { doc.addPage(); y = 20; x = 20; }
+                    doc.addImage(photo, 'JPEG', x, y, imgWidth, imgHeight);
+                    if (x === 20) { x = 110; } else { x = 20; y += (imgHeight + 10); }
+                });
+            }
+            doc.save(`Markasti_JobTicket_${order.orderNumber}.pdf`);
+        }
+    </script>
+</body>
+</html>
