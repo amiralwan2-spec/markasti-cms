@@ -58,33 +58,36 @@
             <div class="p-6 flex flex-col items-center border-b border-slate-800 hidden md:flex">
                 <img id="sidebarLogo" src="" alt="Markasti Logo" class="hidden w-28 mb-3 object-contain drop-shadow-md">
                 <h1 class="text-xl font-bold tracking-wider text-yellow-500">MARKASTI</h1>
-                <p class="text-slate-400 text-[10px] uppercase tracking-widest mt-1">Order Management v17.0</p>
+                <p class="text-slate-400 text-[10px] uppercase tracking-widest mt-1">Order Management v17.1</p>
                 <div class="mt-3 text-[10px] text-emerald-400 font-bold bg-slate-800 px-2 py-1 rounded truncate w-full text-center" id="currentUserDisplay"></div>
             </div>
             
             <nav class="flex-1 px-4 space-y-1 overflow-y-auto pt-4 pb-4">
                 <button onclick="handleNav('dashboard')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 flex items-center gap-2"><span>📊</span> Dashboard</button>
-                <button onclick="handleNav('newOrder')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 flex items-center gap-2"><span>➕</span> Register Order</button>
-                <button onclick="handleNav('reports')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 font-semibold text-blue-400 flex items-center gap-2"><span>📑</span> Reports & Exports</button>
-                <hr class="border-slate-700 my-4">
-                <p class="text-xs text-slate-500 uppercase font-semibold px-3 mb-1 tracking-wider">Configuration</p>
-                <button onclick="handleNav('manageBrand')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">✨ Brand Settings</button>
-                <button onclick="handleNav('manageDepartments')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">🏭 Departments</button>
-                <button onclick="handleNav('manageEmployees')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">👥 Employees</button>
-                <button onclick="handleNav('manageCustomers')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">🤝 Customers</button>
-                <button onclick="handleNav('manageWorkers')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">👷 Workers</button>
-                <button onclick="handleNav('manageJewelry')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">💍 Jewelry Types</button>
-                <button onclick="handleNav('manageMetals')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">⛓️ Metal Types</button>
-                <hr class="border-slate-700 my-4">
                 
-                <div class="p-3 bg-slate-800 rounded-lg border border-slate-700">
-                    <button onclick="exportData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded mb-2 transition shadow text-xs font-bold">💾 Download Backup File</button>
-                    <label class="w-full block bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded text-center cursor-pointer transition shadow text-xs font-bold mb-2">
-                        📂 Smart Cloud Restore
-                        <input type="file" id="fileInput" accept=".json" class="hidden" onchange="importData(event)">
-                    </label>
-                    <button onclick="handleLogout()" class="w-full bg-red-600 hover:bg-red-700 text-white p-2.5 rounded transition shadow text-xs font-bold">🚪 Sign Out</button>
+                <div id="restrictedNavItems" class="space-y-1 hidden">
+                    <button onclick="handleNav('newOrder')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 flex items-center gap-2"><span>➕</span> Register Order</button>
+                    <button onclick="handleNav('reports')" class="w-full text-left p-3 rounded hover:bg-slate-800 transition focus:bg-slate-700 font-semibold text-blue-400 flex items-center gap-2"><span>📑</span> Reports & Exports</button>
+                    <hr class="border-slate-700 my-4">
+                    <p class="text-xs text-slate-500 uppercase font-semibold px-3 mb-1 tracking-wider">Configuration</p>
+                    <button onclick="handleNav('manageBrand')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">✨ Brand Settings</button>
+                    <button onclick="handleNav('manageDepartments')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">🏭 Departments</button>
+                    <button onclick="handleNav('manageEmployees')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">👥 Employees</button>
+                    <button onclick="handleNav('manageCustomers')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">🤝 Customers</button>
+                    <button onclick="handleNav('manageWorkers')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">👷 Workers</button>
+                    <button onclick="handleNav('manageJewelry')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">💍 Jewelry Types</button>
+                    <button onclick="handleNav('manageMetals')" class="w-full text-left p-2.5 rounded hover:bg-slate-800 text-xs transition">⛓️ Metal Types</button>
+                    <hr class="border-slate-700 my-4">
+                    
+                    <div class="p-3 bg-slate-800 rounded-lg border border-slate-700">
+                        <button onclick="exportData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded mb-2 transition shadow text-xs font-bold">💾 Download Backup File</button>
+                        <label class="w-full block bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded text-center cursor-pointer transition shadow text-xs font-bold mb-2">
+                            📂 Smart Cloud Restore
+                            <input type="file" id="fileInput" accept=".json" class="hidden" onchange="importData(event)">
+                        </label>
+                    </div>
                 </div>
+                <button onclick="handleLogout()" class="w-full bg-red-600 hover:bg-red-700 text-white p-2.5 rounded transition shadow text-xs font-bold mt-4">🚪 Sign Out</button>
             </nav>
         </aside>
 
@@ -102,7 +105,6 @@
             <section id="dashboard" class="tab-content block">
                 
                 <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-                    
                     <div class="bg-slate-800 border border-slate-700 p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between">
                         <div class="flex items-center justify-between">
                             <div>
@@ -385,13 +387,20 @@
                 </div>
             </section>
 
-            <section id="configSection" class="tab-content hidden max-w-2xl">
+            <section id="configSection" class="tab-content hidden max-w-3xl">
                 <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
                     <h3 id="configTitle" class="text-lg font-bold text-gray-800 mb-3">Maintain Parameters</h3>
-                    <div class="flex flex-col sm:flex-row gap-2 mb-4">
-                        <input type="text" id="newConfigItem" class="flex-1 border border-gray-300 rounded p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="Label name string...">
-                        <button onclick="addConfigItem()" class="bg-blue-600 text-white px-5 py-2.5 rounded text-xs font-bold uppercase tracking-wide hover:bg-blue-700 transition shadow">Append</button>
+                    
+                    <div class="flex flex-col gap-2 mb-4">
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input type="text" id="newConfigItem" class="flex-1 border border-gray-300 rounded p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="Label / Name...">
+                            <input type="text" id="newConfigPhone" class="hidden flex-1 border border-gray-300 rounded p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="Phone Number (Optional)">
+                            <input type="email" id="newConfigEmail" class="hidden flex-1 border border-gray-300 rounded p-2.5 text-sm focus:outline-none focus:border-blue-500" placeholder="Email Address (Optional)">
+                            <button onclick="addConfigItem()" class="bg-blue-600 text-white px-5 py-2.5 rounded text-xs font-bold uppercase tracking-wide hover:bg-blue-700 transition shadow shrink-0">Append</button>
+                        </div>
+                        <p id="customerHelpText" class="text-[10px] text-gray-500 hidden font-semibold">Note: Linking an email allows users with 'Customer' access to view their own production orders automatically.</p>
                     </div>
+
                     <div class="bg-gray-50 rounded border border-gray-200 overflow-hidden">
                         <ul id="configList" class="divide-y divide-gray-200 bg-white"></ul>
                     </div>
@@ -399,7 +408,9 @@
             </section>
 
         </main>
-    </div> <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-end sm:items-center p-0 sm:p-4 animate-fadeIn">
+    </div> 
+    
+    <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-end sm:items-center p-0 sm:p-4 animate-fadeIn">
         <div class="bg-white w-full max-w-3xl rounded-t-xl sm:rounded-xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50">
                 <h3 class="font-bold text-gray-800 text-base">Modifying Tracking Ticket: <span id="editOrderNumberDisplay" class="text-blue-600"></span></h3>
@@ -500,14 +511,13 @@
             appId: "1:582868238319:web:37464a7058fa525626c01a"
         };
 
-        // --- GLOBAL APP STATE ---
         const defaultData = {
             orders: [],
             config: {
                 logo: null,
                 departments: ['CAD/3D Printing', 'Casting', 'Filing & Assembly', 'Stone Setting', 'Polishing & Plating', 'Ready for Delivery'],
                 employees: ['Manager Admin'],
-                customers: ['Walk-in Client'],
+                customers: [{name: 'Walk-in Client', phone: '', email: ''}],
                 workers: ['Unassigned'],
                 jewelryTypes: ['Ring', 'Necklace', 'Bracelet', 'Pendant'],
                 metalTypes: ['Yellow Gold', 'White Gold', 'Rose Gold', 'Platinum', 'Silver']
@@ -516,7 +526,7 @@
 
         let appData = defaultData; 
         let tempNewPhotos = []; 
-        let currentUserRole = 'Manager';
+        let currentUserRole = 'Guest';
         let tempNewMaterials = []; 
         let tempEditMaterials = [];
         let currentEditOrder = null; 
@@ -556,53 +566,62 @@
                 auth = firebase.auth();
 
                 db.enablePersistence().catch(err => {
-                    console.warn("Offline persistence notice (safe to ignore):", err);
+                    console.warn("Offline persistence notice:", err);
                 });
 
-                // Listen for Login/Logout state changes
                 auth.onAuthStateChanged(async (user) => {
-                 if (user) {
-        // --- ROLE CHECK START ---
-        loggedInEmail = user.email;
-        const userDoc = await db.collection('users').doc(user.email).get();
-        currentUserRole = userDoc.exists ? userDoc.data().role : 'Manager';
-        // --- ROLE CHECK END ---
+                    if (user) {
+                        loggedInEmail = user.email;
+                        const userDoc = await db.collection('users').doc(user.email).get();
+                        
+                        // 🔥 SECURITY UPDATE: Default to Guest instead of Manager
+                        currentUserRole = userDoc.exists ? userDoc.data().role : 'Guest';
+                        applyRoleSecurity();
 
-        // User is logged in: Hide overlay, Show app, Load data
-        document.getElementById('authOverlay').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('currentUserDisplay').innerText = `👤 ${user.email} (${currentUserRole})`;
+                        document.getElementById('authOverlay').classList.add('hidden');
+                        document.getElementById('mainApp').classList.remove('hidden');
+                        document.getElementById('currentUserDisplay').innerText = `👤 ${user.email} (${currentUserRole})`;
 
-        setupFirebaseListeners();
-        addMaterialRow('new');
-        setViewMode(currentViewMode);
-        initZoomAndPan();
-        
-        document.getElementById('orderDate').valueAsDate = new Date();
-        const dayRange = new Date(); dayRange.setDate(new Date().getDate() - 30);
-        document.getElementById('excelStartDate').valueAsDate = dayRange;
-        document.getElementById('excelEndDate').valueAsDate = new Date();
+                        setupFirebaseListeners();
+                        addMaterialRow('new');
+                        setViewMode(currentViewMode);
+                        initZoomAndPan();
+                        
+                        document.getElementById('orderDate').valueAsDate = new Date();
+                        const dayRange = new Date(); dayRange.setDate(new Date().getDate() - 30);
+                        document.getElementById('excelStartDate').valueAsDate = dayRange;
+                        document.getElementById('excelEndDate').valueAsDate = new Date();
 
-        const status = document.getElementById('cloudStatus');
-        status.className = "bg-green-50 text-green-700 px-2.5 py-1 rounded-full text-[11px] font-bold border border-green-200 flex items-center shadow-sm";
-        status.innerHTML = `<span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></span> Cloud Sync Active`;
+                        const status = document.getElementById('cloudStatus');
+                        status.className = "bg-green-50 text-green-700 px-2.5 py-1 rounded-full text-[11px] font-bold border border-green-200 flex items-center shadow-sm";
+                        status.innerHTML = `<span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></span> Cloud Sync Active`;
 
-    } else {
-        // User is logged out: Show overlay, Hide app, stop database listening
-        loggedInEmail = null;
-        document.getElementById('authOverlay').classList.remove('hidden');
-        document.getElementById('mainApp').classList.add('hidden');
-        if (unsubscribeConfig) unsubscribeConfig();
-        if (unsubscribeOrders) unsubscribeOrders();
-    }
-});
-
+                    } else {
+                        loggedInEmail = null;
+                        document.getElementById('authOverlay').classList.remove('hidden');
+                        document.getElementById('mainApp').classList.add('hidden');
+                        if (unsubscribeConfig) unsubscribeConfig();
+                        if (unsubscribeOrders) unsubscribeOrders();
+                    }
+                });
             } catch (err) {
                 console.error("Firebase connection error:", err);
                 document.getElementById('authError').innerText = "Database connection failed. Please check your internet.";
                 document.getElementById('authError').classList.remove('hidden');
             }
         });
+
+        // 🔥 SECURITY RESTRICTIONS UI
+        function applyRoleSecurity() {
+            const restrictedNav = document.getElementById('restrictedNavItems');
+            if(restrictedNav) {
+                if(currentUserRole === 'Guest' || currentUserRole === 'Customer') {
+                    restrictedNav.classList.add('hidden');
+                } else {
+                    restrictedNav.classList.remove('hidden');
+                }
+            }
+        }
 
         // --- REAL-TIME FIREBASE SYNC ---
         function setupFirebaseListeners() {
@@ -614,10 +633,7 @@
                         sortConfigLists();
                         updateAllDropdowns();
                         renderLogoUI();
-                        
-                        if (currentConfigContext !== '') {
-                            renderConfigList();
-                        }
+                        if (currentConfigContext !== '') renderConfigList();
                     }
                 }
             }, error => { console.error("Config sync error:", error); });
@@ -640,7 +656,7 @@
 
         async function saveOrderToFirebase(orderObj) {
             try { await db.collection('orders').doc(orderObj.id).set(orderObj); } 
-            catch(e) { console.error(e); alert("Failed to save order to cloud. Ensure your image sizes aren't exceeding limits."); }
+            catch(e) { console.error(e); alert("Failed to save order to cloud."); }
         }
 
         async function deleteOrderFromFirebase(orderId) {
@@ -648,7 +664,6 @@
             catch(e) { console.error(e); alert("Failed to delete order from cloud. Check your permissions."); }
         }
 
-        // --- MOBILE LAYOUT CONTROL ---
         function toggleMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -671,12 +686,15 @@
             switchTab(tabId);
         }
 
-        // --- LOGIC ---
         function sortConfigLists() {
             const keys = ['customers', 'employees', 'workers', 'jewelryTypes', 'metalTypes'];
             keys.forEach(k => {
                 if (appData.config[k] && Array.isArray(appData.config[k])) {
-                    appData.config[k].sort((a, b) => String(a).localeCompare(String(b), undefined, {sensitivity: 'base'}));
+                    appData.config[k].sort((a, b) => {
+                        let valA = typeof a === 'object' ? a.name : String(a);
+                        let valB = typeof b === 'object' ? b.name : String(b);
+                        return valA.localeCompare(valB, undefined, {sensitivity: 'base'});
+                    });
                 }
             });
         }
@@ -699,7 +717,6 @@
             } else {
                 document.getElementById(tabId).classList.remove('hidden');
             }
-
             if(tabId === 'dashboard') setViewMode(currentViewMode); 
         }
 
@@ -740,19 +757,14 @@
         function addMaterialRow(mode) {
             const safeMetalTypes = (appData.config && appData.config.metalTypes && appData.config.metalTypes.length > 0) ? appData.config.metalTypes : ['Yellow Gold'];
             const newMat = { metalType: safeMetalTypes[0], karat: '24', grossWeight: '', pureWeight: '0.00' };
-            
             if (mode === 'new') tempNewMaterials.push(newMat);
             else tempEditMaterials.push(newMat);
-            
             renderMaterialRows(mode);
         }
 
         function removeMaterialRow(mode, index) {
-            if (mode === 'new') {
-                tempNewMaterials.splice(index, 1);
-            } else {
-                tempEditMaterials.splice(index, 1);
-            }
+            if (mode === 'new') tempNewMaterials.splice(index, 1);
+            else tempEditMaterials.splice(index, 1);
             renderMaterialRows(mode);
         }
 
@@ -763,12 +775,8 @@
             if(field === 'karat' || field === 'grossWeight') {
                 let gross = parseFloat(arr[index].grossWeight) || 0;
                 let purityValue = parseFloat(arr[index].karat) || 24;
-                
-                if (purityValue === 925) {
-                    arr[index].pureWeight = (gross * 0.925).toFixed(2);
-                } else {
-                    arr[index].pureWeight = (gross * (purityValue / 24)).toFixed(2);
-                }
+                if (purityValue === 925) { arr[index].pureWeight = (gross * 0.925).toFixed(2); } 
+                else { arr[index].pureWeight = (gross * (purityValue / 24)).toFixed(2); }
             }
             renderMaterialRows(mode);
         }
@@ -776,7 +784,6 @@
         function renderMaterialRows(mode) {
             const container = document.getElementById(mode === 'new' ? 'newOrderMaterialsContainer' : 'editOrderMaterialsContainer');
             const totalId = mode === 'new' ? 'newOrderTotalPureDisplay' : 'editOrderTotalPureDisplay';
-            
             if (!container) return; 
 
             const arr = mode === 'new' ? tempNewMaterials : tempEditMaterials;
@@ -787,14 +794,11 @@
 
             arr.forEach((mat, i) => {
                 totalPure += parseFloat(mat.pureWeight) || 0;
-                
                 let metalOptions = safeMetalTypes.map(m => `<option value="${m}" ${m === mat.metalType ? 'selected' : ''}>${m}</option>`).join('');
                 let kOptions = ['24','22','21','18','925'].map(k => `<option value="${k}" ${String(k) === String(mat.karat) ? 'selected' : ''}>${k === '925' ? '925 (Silver)' : k+'K'}</option>`).join('');
 
                 html += `
                     <div class="grid grid-cols-12 gap-2 items-center p-2 bg-gray-50 border border-gray-200 rounded relative group shadow-sm">
-                        <button type="button" onclick="removeMaterialRow('${mode}', ${i})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 hover:opacity-100 transition hover:scale-110 shadow group-hover:opacity-100 z-10">&times;</button>
-                        
                         <div class="col-span-5 sm:col-span-4">
                             <select onchange="updateMaterialField('${mode}', ${i}, 'metalType', this.value)" class="w-full border border-gray-300 rounded p-1.5 text-xs bg-white">${metalOptions}</select>
                         </div>
@@ -810,8 +814,7 @@
                         <div class="col-span-2 sm:col-span-1 text-right">
                             <button type="button" onclick="removeMaterialRow('${mode}', ${i})" class="text-red-500 hover:text-red-700 text-sm font-bold px-1">&times;</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
 
             container.innerHTML = html;
@@ -819,26 +822,18 @@
             if(displayTotal) displayTotal.innerText = totalPure.toFixed(2) + ' g';
         }
 
-        // --- LOGO MANAGEMENT ---
         function processLogoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400; 
-                    let scaleSize = 1;
+                    const MAX_WIDTH = 400; let scaleSize = 1;
                     if(img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
-                    
-                    canvas.width = img.width * scaleSize;
-                    canvas.height = img.height * scaleSize;
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
+                    canvas.width = img.width * scaleSize; canvas.height = img.height * scaleSize;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     appData.config.logo = canvas.toDataURL('image/png'); 
                     saveConfigToFirebase();
                 };
@@ -852,7 +847,6 @@
             const sidebarImg = document.getElementById('sidebarLogo');
             const previewImg = document.getElementById('logoPreview');
             const noLogoText = document.getElementById('noLogoText');
-
             if (appData.config.logo) {
                 if(sidebarImg) { sidebarImg.src = appData.config.logo; sidebarImg.classList.remove('hidden'); }
                 if(previewImg) { previewImg.src = appData.config.logo; previewImg.classList.remove('hidden'); noLogoText.classList.add('hidden'); }
@@ -862,30 +856,65 @@
             }
         }
 
-        // --- CONFIGURATION MANAGEMENT ---
+        // 🔥 CUSTOMER PROFILE EXTENSIONS
         function setupConfigView(type) {
             const typeMap = { 'Departments': 'departments', 'Employees': 'employees', 'Customers': 'customers', 'Workers': 'workers', 'Jewelry': 'jewelryTypes', 'Metals': 'metalTypes'};
             currentConfigContext = typeMap[type];
             document.getElementById('configTitle').innerText = `Manage ${type}`;
             document.getElementById('newConfigItem').value = '';
+            
+            const phoneInput = document.getElementById('newConfigPhone');
+            const emailInput = document.getElementById('newConfigEmail');
+            const helpText = document.getElementById('customerHelpText');
+
+            if (currentConfigContext === 'customers') {
+                if(phoneInput) phoneInput.classList.remove('hidden');
+                if(emailInput) emailInput.classList.remove('hidden');
+                if(helpText) helpText.classList.remove('hidden');
+                document.getElementById('newConfigPhone').value = '';
+                document.getElementById('newConfigEmail').value = '';
+            } else {
+                if(phoneInput) phoneInput.classList.add('hidden');
+                if(emailInput) emailInput.classList.add('hidden');
+                if(helpText) helpText.classList.add('hidden');
+            }
+
             sortConfigLists(); 
             renderConfigList();
         }
 
         function addConfigItem() {
             const val = document.getElementById('newConfigItem').value.trim();
-            if (val && !appData.config[currentConfigContext].includes(val)) {
-                appData.config[currentConfigContext].push(val);
-                document.getElementById('newConfigItem').value = '';
+            if(!val) return;
+
+            if (currentConfigContext === 'customers') {
+                const phone = document.getElementById('newConfigPhone').value.trim();
+                const email = document.getElementById('newConfigEmail').value.trim();
                 
-                saveConfigToFirebase().then(() => {
-                    renderConfigList();
-                    updateAllDropdowns();
-                });
-                
-                if (currentConfigContext === 'metalTypes') {
-                    renderMaterialRows('new');
-                    if (currentEditOrder) renderMaterialRows('edit');
+                if (!appData.config.customers.some(c => (typeof c === 'object' ? c.name : c) === val)) {
+                    appData.config.customers.push({ name: val, phone: phone, email: email });
+                    document.getElementById('newConfigItem').value = '';
+                    document.getElementById('newConfigPhone').value = '';
+                    document.getElementById('newConfigEmail').value = '';
+                    
+                    saveConfigToFirebase().then(() => {
+                        renderConfigList();
+                        updateAllDropdowns();
+                    });
+                } else { alert("Customer name already exists."); }
+
+            } else {
+                if (!appData.config[currentConfigContext].includes(val)) {
+                    appData.config[currentConfigContext].push(val);
+                    document.getElementById('newConfigItem').value = '';
+                    saveConfigToFirebase().then(() => {
+                        renderConfigList();
+                        updateAllDropdowns();
+                    });
+                    if (currentConfigContext === 'metalTypes') {
+                        renderMaterialRows('new');
+                        if (currentEditOrder) renderMaterialRows('edit');
+                    }
                 }
             }
         }
@@ -897,45 +926,36 @@
                     renderConfigList();
                     updateAllDropdowns();
                 });
-            } else {
-                alert("Error: Incorrect password.");
-            }
+            } else { alert("Error: Incorrect password."); }
         }
 
         function editConfigItem(index) {
-            const oldName = appData.config[currentConfigContext][index];
+            let item = appData.config[currentConfigContext][index];
+            let oldName = (currentConfigContext === 'customers' && typeof item === 'object') ? item.name : item;
+
             const newName = prompt(`Rename "${oldName}"\n\nWarning: This will automatically update all existing orders linked to this name.`, oldName);
 
             if (newName !== null) {
                 const trimmedName = newName.trim();
                 if (trimmedName !== '' && trimmedName !== oldName) {
                     
-                    if (appData.config[currentConfigContext].includes(trimmedName)) {
-                        alert("That name already exists in the list.");
-                        return;
+                    if (currentConfigContext === 'customers') {
+                        if (appData.config.customers.some(c => (typeof c === 'object' ? c.name : c) === trimmedName)) { return alert("Name exists."); }
+                        if (typeof item === 'object') { item.name = trimmedName; } 
+                        else { appData.config.customers[index] = {name: trimmedName, phone: '', email: ''}; }
+                    } else {
+                        if (appData.config[currentConfigContext].includes(trimmedName)) { return alert("Name exists."); }
+                        appData.config[currentConfigContext][index] = trimmedName;
                     }
-
-                    appData.config[currentConfigContext][index] = trimmedName;
                     
-                    saveConfigToFirebase().then(() => {
-                        renderConfigList();
-                        updateAllDropdowns();
-                    });
+                    saveConfigToFirebase().then(() => { renderConfigList(); updateAllDropdowns(); });
 
                     appData.orders.forEach(order => {
                         let changed = false;
-                        if (currentConfigContext === 'customers' && order.customer === oldName) {
-                            order.customer = trimmedName; changed = true;
-                        }
-                        else if (currentConfigContext === 'employees' && order.employee === oldName) {
-                            order.employee = trimmedName; changed = true;
-                        }
-                        else if (currentConfigContext === 'departments' && order.department === oldName) {
-                            order.department = trimmedName; changed = true;
-                        }
-                        else if (currentConfigContext === 'workers' && order.worker === oldName) {
-                            order.worker = trimmedName; changed = true;
-                        }
+                        if (currentConfigContext === 'customers' && order.customer === oldName) { order.customer = trimmedName; changed = true; }
+                        else if (currentConfigContext === 'employees' && order.employee === oldName) { order.employee = trimmedName; changed = true; }
+                        else if (currentConfigContext === 'departments' && order.department === oldName) { order.department = trimmedName; changed = true; }
+                        else if (currentConfigContext === 'workers' && order.worker === oldName) { order.worker = trimmedName; changed = true; }
                         else if (currentConfigContext === 'jewelryTypes') {
                             if (order.jewelryTypes && Array.isArray(order.jewelryTypes)) {
                                 const jIndex = order.jewelryTypes.indexOf(oldName);
@@ -944,12 +964,9 @@
                         }
                         else if (currentConfigContext === 'metalTypes') {
                             if (order.materials && Array.isArray(order.materials)) {
-                                order.materials.forEach(mat => {
-                                    if (mat.metalType === oldName) { mat.metalType = trimmedName; changed = true; }
-                                });
+                                order.materials.forEach(mat => { if (mat.metalType === oldName) { mat.metalType = trimmedName; changed = true; } });
                             }
                         }
-                        
                         if(changed) saveOrderToFirebase(order);
                     });
                 }
@@ -960,10 +977,26 @@
             const list = document.getElementById('configList');
             list.innerHTML = '';
             appData.config[currentConfigContext].forEach((item, index) => {
+                let displayName = item;
+                let subText = '';
+
+                if (currentConfigContext === 'customers') {
+                    if (typeof item === 'object') {
+                        displayName = item.name;
+                        subText = `<span class="text-[10px] text-gray-500 block mt-1 font-semibold">📞 ${item.phone || 'None'} &nbsp;|&nbsp; ✉️ ${item.email || 'None'}</span>`;
+                    } else {
+                        displayName = item; // Fallback for old simple strings
+                        subText = `<span class="text-[10px] text-gray-400 block mt-1 italic">Legacy Profile (No Details)</span>`;
+                    }
+                }
+
                 list.innerHTML += `
                     <li class="flex justify-between items-center p-3 hover:bg-gray-100 transition text-xs sm:text-sm">
-                        <span class="font-medium text-gray-700">${item}</span>
-                        <div class="space-x-1 flex">
+                        <div>
+                            <span class="font-medium text-gray-700">${displayName}</span>
+                            ${subText}
+                        </div>
+                        <div class="space-x-1 flex shrink-0">
                             <button onclick="editConfigItem(${index})" class="text-blue-500 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50 font-bold transition">Edit</button>
                             <button onclick="deleteConfigItem(${index})" class="text-red-500 px-2 py-1 border border-red-200 rounded hover:bg-red-50 font-bold transition">Remove</button>
                         </div>
@@ -972,20 +1005,23 @@
         }
 
         function updateAllDropdowns() {
-            const populate = (selectId, dataArray) => {
+            const populate = (selectId, dataArray, isCustomer = false) => {
                 const select = document.getElementById(selectId);
                 if(select) {
                     select.innerHTML = '';
                     if (dataArray && Array.isArray(dataArray)) {
-                        dataArray.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`);
+                        dataArray.forEach(item => {
+                            let val = (isCustomer && typeof item === 'object') ? item.name : item;
+                            select.innerHTML += `<option value="${val}">${val}</option>`;
+                        });
                     }
                 }
             };
             populate('orderDept', appData.config.departments);
             populate('editDept', appData.config.departments);
             populate('orderEmployee', appData.config.employees);
-            populate('orderCustomer', appData.config.customers);
-            populate('editCustomer', appData.config.customers); 
+            populate('orderCustomer', appData.config.customers, true);
+            populate('editCustomer', appData.config.customers, true); 
             populate('orderWorker', appData.config.workers);
             populate('editWorker', appData.config.workers);
             populate('orderJewelryType', appData.config.jewelryTypes);
@@ -996,36 +1032,24 @@
             const select = document.getElementById('pdfOrderSelect');
             if(select) {
                 select.innerHTML = '<option value="">-- Choose an Order --</option>';
-                appData.orders.forEach(order => {
-                    select.innerHTML += `<option value="${order.id}">#${order.orderNumber} - ${order.customer} (${order.status})</option>`;
-                });
+                appData.orders.forEach(order => { select.innerHTML += `<option value="${order.id}">#${order.orderNumber} - ${order.customer} (${order.status})</option>`; });
             }
         }
 
-        // Dynamically build a list of all emails that have interacted with orders
         function updateExcelEmployeeDropdown() {
             const select = document.getElementById('excelEmployee');
             if(!select) return;
-            
             const currentSelection = select.value;
             select.innerHTML = '<option value="All">All Users / Everyone</option>';
-            
             const uniqueEmails = new Set();
             appData.orders.forEach(order => {
                 if (order.loggedByEmail) uniqueEmails.add(order.loggedByEmail);
                 if (order.lastModifiedBy) uniqueEmails.add(order.lastModifiedBy);
             });
-            
-            Array.from(uniqueEmails).sort().forEach(email => {
-                select.innerHTML += `<option value="${email}">${email}</option>`;
-            });
-            
-            if (Array.from(uniqueEmails).includes(currentSelection)) {
-                select.value = currentSelection;
-            }
+            Array.from(uniqueEmails).sort().forEach(email => { select.innerHTML += `<option value="${email}">${email}</option>`; });
+            if (Array.from(uniqueEmails).includes(currentSelection)) select.value = currentSelection;
         }
 
-        // --- IMAGE COMPRESSION & HANDLING ---
         function processImages(event, mode) {
             const files = Array.from(event.target.files);
             files.forEach(file => {
@@ -1034,21 +1058,13 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300; 
-                        let scaleSize = 1;
+                        const MAX_WIDTH = 300; let scaleSize = 1;
                         if(img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
-                        canvas.width = img.width * scaleSize;
-                        canvas.height = img.height * scaleSize;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.width = img.width * scaleSize; canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         const base64Compressed = canvas.toDataURL('image/jpeg', 0.4); 
-                        if (mode === 'new') {
-                            tempNewPhotos.push(base64Compressed);
-                            renderNewOrderPhotos();
-                        } else if (mode === 'edit') {
-                            currentEditOrder.photos.push(base64Compressed);
-                            renderEditOrderPhotos();
-                        }
+                        if (mode === 'new') { tempNewPhotos.push(base64Compressed); renderNewOrderPhotos(); } 
+                        else if (mode === 'edit') { currentEditOrder.photos.push(base64Compressed); renderEditOrderPhotos(); }
                     };
                     img.src = e.target.result;
                 };
@@ -1074,8 +1090,7 @@
             if (!gallery) return;
             gallery.innerHTML = '';
             if(!currentEditOrder.photos || currentEditOrder.photos.length === 0) {
-                gallery.innerHTML = '<span class="text-gray-400 text-xs italic">No visual attachments.</span>'; 
-                return;
+                gallery.innerHTML = '<span class="text-gray-400 text-xs italic">No visual attachments.</span>'; return;
             }
             currentEditOrder.photos.forEach((photo, index) => {
                 gallery.innerHTML += `
@@ -1087,24 +1102,16 @@
         }
 
         function removePhoto(mode, index) {
-            if (mode === 'new') {
-                tempNewPhotos.splice(index, 1);
-                renderNewOrderPhotos();
-            } else if (mode === 'edit') {
-                currentEditOrder.photos.splice(index, 1);
-                renderEditOrderPhotos();
-            }
+            if (mode === 'new') { tempNewPhotos.splice(index, 1); renderNewOrderPhotos(); } 
+            else if (mode === 'edit') { currentEditOrder.photos.splice(index, 1); renderEditOrderPhotos(); }
         }
 
-        // --- CREATING ORDERS (Now with Audit Trails) ---
         function saveNewOrder(event) {
             event.preventDefault();
             
             const jewelrySelect = document.getElementById('orderJewelryType');
             let selectedJewelry = [];
-            if (jewelrySelect) {
-                selectedJewelry = Array.from(jewelrySelect.selectedOptions).map(opt => opt.value);
-            }
+            if (jewelrySelect) selectedJewelry = Array.from(jewelrySelect.selectedOptions).map(opt => opt.value);
 
             const currentDate = new Date().toISOString().split('T')[0];
             const startDateEl = document.getElementById('orderStartDate');
@@ -1112,17 +1119,22 @@
 
             const safeGet = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
 
+            // 🔥 CUSTOMER EMAIL LINKING
+            const custName = safeGet('orderCustomer');
+            let linkedEmail = '';
+            const foundCust = appData.config.customers.find(c => (typeof c === 'object' ? c.name : c) === custName);
+            if(foundCust && typeof foundCust === 'object') linkedEmail = foundCust.email;
+
             const newOrder = {
                 id: Date.now().toString(),
                 orderNumber: safeGet('orderNumber'),
                 date: safeGet('orderDate'),
                 description: safeGet('orderDesc'),
                 jewelryTypes: selectedJewelry,
-                customer: safeGet('orderCustomer'),
+                customer: custName,
+                customerEmail: linkedEmail, // Linked to the profile for security filters
                 employee: safeGet('orderEmployee'),
-                
                 materials: JSON.parse(JSON.stringify(tempNewMaterials)),
-                
                 startDate: startDateValue,
                 department: safeGet('orderDept'),
                 worker: safeGet('orderWorker'),
@@ -1130,8 +1142,6 @@
                 statusDate: currentDate,
                 notes: safeGet('orderNotes'),
                 photos: [...tempNewPhotos],
-                
-                // Security / Audit Trail additions
                 loggedByEmail: loggedInEmail,
                 lastModifiedBy: loggedInEmail,
                 lastModifiedDate: new Date().toISOString()
@@ -1140,43 +1150,33 @@
             saveOrderToFirebase(newOrder).then(() => {
                 const form = document.getElementById('orderForm');
                 if (form) form.reset();
-                
-                tempNewPhotos = [];
-                tempNewMaterials = []; 
-                renderNewOrderPhotos();
-                addMaterialRow('new'); 
-                
+                tempNewPhotos = []; tempNewMaterials = []; 
+                renderNewOrderPhotos(); addMaterialRow('new'); 
                 const dateInput = document.getElementById('orderDate');
                 if(dateInput) dateInput.valueAsDate = new Date();
-                
                 const pureDisp = document.getElementById('newOrderTotalPureDisplay');
                 if(pureDisp) pureDisp.innerText = '0.00 g';
-                
                 switchTab('dashboard');
             });
         }
 
-        // --- DASHBOARD RENDER & INTELLIGENCE ---
         function updateStatusCounters() {
             let metrics = {
-                total: {c:0, au:0, ag:0},
-                pending: {c:0, au:0, ag:0},
-                inProgress: {c:0, au:0, ag:0},
-                completed: {c:0, au:0, ag:0},
-                canceled: {c:0, au:0, ag:0}
+                total: {c:0, au:0, ag:0}, pending: {c:0, au:0, ag:0},
+                inProgress: {c:0, au:0, ag:0}, completed: {c:0, au:0, ag:0}, canceled: {c:0, au:0, ag:0}
             };
             
             appData.orders.forEach(o => {
+                // Apply Security Filter to Dashboard Counters too
+                if (currentUserRole === 'Guest') return;
+                if (currentUserRole === 'Customer' && o.customerEmail !== loggedInEmail && o.loggedByEmail !== loggedInEmail) return;
+
                 let mats = getMaterialsFromOrder(o);
                 let hasAu = mats.some(m => m.metalType.toLowerCase().includes('gold') || m.metalType.toLowerCase().includes('platinum'));
                 let hasAg = mats.some(m => m.metalType.toLowerCase().includes('silver'));
 
-                // Global Count
-                metrics.total.c++;
-                if(hasAu) metrics.total.au++;
-                if(hasAg) metrics.total.ag++;
+                metrics.total.c++; if(hasAu) metrics.total.au++; if(hasAg) metrics.total.ag++;
 
-                // Status Count
                 let statKey = '';
                 if (o.status === "Pending") statKey = 'pending';
                 else if (o.status === "In Progress") statKey = 'inProgress';
@@ -1184,15 +1184,11 @@
                 else if (o.status === "Canceled") statKey = 'canceled';
 
                 if (statKey) {
-                    metrics[statKey].c++;
-                    if(hasAu) metrics[statKey].au++;
-                    if(hasAg) metrics[statKey].ag++;
+                    metrics[statKey].c++; if(hasAu) metrics[statKey].au++; if(hasAg) metrics[statKey].ag++;
                 }
             });
 
-            // Update DOM Elements
             const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-            
             safeSet('countTotal', metrics.total.c); safeSet('totalAu', metrics.total.au); safeSet('totalAg', metrics.total.ag);
             safeSet('countPending', metrics.pending.c); safeSet('pendingAu', metrics.pending.au); safeSet('pendingAg', metrics.pending.ag);
             safeSet('countInProgress', metrics.inProgress.c); safeSet('inProgressAu', metrics.inProgress.au); safeSet('inProgressAg', metrics.inProgress.ag);
@@ -1209,9 +1205,7 @@
             
             if(!listTbody || !mBody || !gridContainer) return;
             
-            listTbody.innerHTML = ''; 
-            mBody.innerHTML = '';
-            gridContainer.innerHTML = '';
+            listTbody.innerHTML = ''; mBody.innerHTML = ''; gridContainer.innerHTML = '';
 
             const statusFilterDropdown = document.getElementById('statusFilter');
             const filterValue = statusFilterDropdown ? statusFilterDropdown.value : 'All';
@@ -1221,6 +1215,12 @@
             const sortOrder = dateSortDropdown ? dateSortDropdown.value : 'newest';
 
             let filteredOrders = appData.orders.filter(order => {
+                // 🔥 CRITICAL ROLE SECURITY FILTER
+                if (currentUserRole === 'Guest') return false; 
+                if (currentUserRole === 'Customer') {
+                    if (order.customerEmail !== loggedInEmail && order.loggedByEmail !== loggedInEmail) return false;
+                }
+
                 const matchesStatus = (filterValue === 'All') || (order.status === filterValue);
                 const matchesSearch = searchTerm === '' || 
                     (order.orderNumber && order.orderNumber.toLowerCase().includes(searchTerm)) ||
@@ -1238,17 +1238,23 @@
             });
 
             if (filteredOrders.length === 0) {
-                document.getElementById('emptyState').classList.remove('hidden');
+                const emptyEl = document.getElementById('emptyState');
+                if (currentUserRole === 'Guest') {
+                    emptyEl.innerText = "Welcome! Your account is pending administrator verification. You currently have Guest access.";
+                } else if (currentUserRole === 'Customer') {
+                    emptyEl.innerText = "No active orders found for your registered email address.";
+                } else {
+                    emptyEl.innerText = "No matching production data entries found.";
+                }
+                
+                emptyEl.classList.remove('hidden');
                 document.getElementById('listContainer').classList.add('hidden');
                 document.getElementById('gridContainer').classList.add('hidden');
                 return;
             } else {
                 document.getElementById('emptyState').classList.add('hidden');
-                if(currentViewMode === 'list') {
-                    document.getElementById('listContainer').classList.remove('hidden');
-                } else {
-                    document.getElementById('gridContainer').classList.remove('hidden');
-                }
+                if(currentViewMode === 'list') { document.getElementById('listContainer').classList.remove('hidden'); } 
+                else { document.getElementById('gridContainer').classList.remove('hidden'); }
             }
 
             filteredOrders.forEach((order) => {
@@ -1292,6 +1298,9 @@
                 
                 const auditHtml = order.lastModifiedBy ? `<span class="block text-[9px] text-blue-500 mt-1 uppercase font-bold tracking-tight">👤 ${order.lastModifiedBy}</span>` : '';
 
+                let foundCust = appData.config.customers.find(c => (typeof c === 'object' ? c.name : c) === order.customer);
+                let custPhone = (foundCust && typeof foundCust === 'object') ? foundCust.phone : '';
+
                 // Desktop Table View
                 const tr = document.createElement('tr');
                 tr.className = "border-b border-gray-100 hover:bg-gray-50/80 transition text-xs";
@@ -1311,14 +1320,14 @@
                         ${auditHtml}
                     </td>
                     <td class="p-3 text-right space-x-1 flex justify-end">
-                        <button onclick="sendWhatsApp('${order.customer}')" class="text-green-600 px-2 py-1 border border-green-200 rounded hover:bg-green-50 font-bold transition">Chat</button>
+                        <button onclick="sendWhatsApp('${order.customer}', '${custPhone}')" class="text-green-600 px-2 py-1 border border-green-200 rounded hover:bg-green-50 font-bold transition">Chat</button>
                         <button onclick="generateOrderPDF('${order.id}')" class="text-red-600 px-2 py-1 border border-red-200 rounded hover:bg-red-50 font-bold transition">PDF</button>
-                        <button onclick="openEditModal('${order.id}')" class="text-blue-600 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50 font-bold transition">Edit</button>
+                        ${currentUserRole === 'Admin' || currentUserRole === 'Manager' ? `<button onclick="openEditModal('${order.id}')" class="text-blue-600 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50 font-bold transition">Edit</button>` : ''}
                         ${currentUserRole === 'Admin' ? `<button onclick="attemptDelete('${order.id}')" class="flex-none px-3 py-2 text-center border border-red-200 text-red-500 text-xs font-bold rounded bg-white transition">Del</button>` : ''}
                     </td>`;
                 listTbody.appendChild(tr);
 
-                // Responsive Mobile Stack Container
+                // Mobile View
                 const mDiv = document.createElement('div');
                 mDiv.className = "p-4 flex flex-col gap-2 bg-white hover:bg-gray-50/50 transition relative";
                 mDiv.innerHTML = `
@@ -1346,9 +1355,9 @@
                         <div class="space-y-1">${matsHtml}</div>
                     </div>
                     <div class="flex gap-1 mt-1">
-                        <button onclick="sendWhatsApp('${order.customer}')" class="flex-1 py-2 text-center border border-green-200 text-green-600 text-xs font-bold rounded bg-white transition hover:bg-green-50">Chat</button>
+                        <button onclick="sendWhatsApp('${order.customer}', '${custPhone}')" class="flex-1 py-2 text-center border border-green-200 text-green-600 text-xs font-bold rounded bg-white transition hover:bg-green-50">Chat</button>
                         <button onclick="generateOrderPDF('${order.id}')" class="flex-1 py-2 text-center border border-red-200 text-red-600 text-xs font-bold rounded bg-white transition hover:bg-red-50">PDF</button>
-                        <button onclick="openEditModal('${order.id}')" class="flex-1 py-2 text-center border border-blue-200 text-blue-600 text-xs font-bold rounded bg-white transition hover:bg-blue-50">Edit</button>
+                        ${currentUserRole === 'Admin' || currentUserRole === 'Manager' ? `<button onclick="openEditModal('${order.id}')" class="flex-1 py-2 text-center border border-blue-200 text-blue-600 text-xs font-bold rounded bg-white transition hover:bg-blue-50">Edit</button>` : ''}
                         ${currentUserRole === 'Admin' ? `<button onclick="attemptDelete('${order.id}')" class="flex-none px-3 py-2 text-center border border-red-200 text-red-500 text-xs font-bold rounded bg-white transition hover:bg-red-50">Del</button>` : ''}
                     </div>`;
                 mBody.appendChild(mDiv);
@@ -1393,43 +1402,36 @@
                         ${auditHtml}
                     </div>
                     <div class="p-2 bg-gray-50 border-t flex gap-1">
-                        <button onclick="sendWhatsApp('${order.customer}')" class="flex-1 py-1 text-center bg-white border border-green-200 text-green-600 text-xs font-bold rounded transition hover:bg-green-50">Chat</button>
+                        <button onclick="sendWhatsApp('${order.customer}', '${custPhone}')" class="flex-1 py-1 text-center bg-white border border-green-200 text-green-600 text-xs font-bold rounded transition hover:bg-green-50">Chat</button>
                         <button onclick="generateOrderPDF('${order.id}')" class="flex-1 py-1 text-center bg-white border border-red-200 text-red-600 text-xs font-bold rounded transition hover:bg-red-50">PDF</button>
-                        <button onclick="openEditModal('${order.id}')" class="flex-1 py-1 text-center bg-white border border-blue-200 text-blue-600 text-xs font-bold rounded transition hover:bg-blue-50">Edit</button>
+                        ${currentUserRole === 'Admin' || currentUserRole === 'Manager' ? `<button onclick="openEditModal('${order.id}')" class="flex-1 py-1 text-center bg-white border border-blue-200 text-blue-600 text-xs font-bold rounded transition hover:bg-blue-50">Edit</button>` : ''}
                         ${currentUserRole === 'Admin' ? `<button onclick="attemptDelete('${order.id}')" class="flex-none px-3 py-2 text-center border border-red-200 text-red-500 text-xs font-bold rounded bg-white transition hover:bg-red-50">Del</button>` : ''}
                     </div>`;
                 gridContainer.appendChild(gCard);
             });
         }
 
-        // --- WHATSAPP COMMUNICATION ---
-        function sendWhatsApp(customerName) {
-            // Since we haven't added phone fields to the config yet, we will open Web WhatsApp 
-            // with a pre-filled message, allowing the user to select the contact manually from their WhatsApp app.
+        function sendWhatsApp(customerName, phone) {
             const message = encodeURIComponent(`Hello ${customerName}, we have an update regarding your production order.`);
-            window.open(`https://wa.me/?text=${message}`, '_blank');
+            let url = `https://wa.me/?text=${message}`;
+            if(phone && phone !== 'undefined' && phone !== '') {
+                url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`;
+            }
+            window.open(url, '_blank');
         }
 
-        // --- SECURE DELETION OPERATION ---
         function attemptDelete(orderId) {
             if (prompt("ADMINISTRATOR ACTION: Enter password to delete order.") === "@mir1976") {
                 deleteOrderFromFirebase(orderId);
-            } else { 
-                alert("Error: Incorrect password."); 
-            }
+            } else { alert("Error: Incorrect password."); }
         }
 
-        // --- EDITING LOGIC (Now with Audit Trails) ---
         function openEditModal(orderId) {
             try {
                 const originalOrder = appData.orders.find(o => String(o.id) === String(orderId));
-                if (!originalOrder) {
-                    alert("Error finding order. Please try refreshing the page.");
-                    return;
-                }
+                if (!originalOrder) { alert("Error finding order. Please try refreshing the page."); return; }
 
                 currentEditOrder = JSON.parse(JSON.stringify(originalOrder));
-                
                 const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
                 
                 const disp = document.getElementById('editOrderNumberDisplay');
@@ -1444,7 +1446,6 @@
                 safeSet('editDesc', currentEditOrder.description || ''); 
                 
                 tempEditMaterials = getMaterialsFromOrder(currentEditOrder);
-                
                 if (!tempEditMaterials || tempEditMaterials.length === 0) {
                     const safeMetalTypes = (appData.config && appData.config.metalTypes && appData.config.metalTypes.length > 0) ? appData.config.metalTypes : ['Yellow Gold'];
                     tempEditMaterials.push({ metalType: safeMetalTypes[0], karat: '24', grossWeight: '', pureWeight: '0.00' });
@@ -1452,7 +1453,6 @@
 
                 renderMaterialRows('edit');
                 renderEditOrderPhotos(); 
-                
                 const modal = document.getElementById('editModal');
                 if(modal) modal.classList.remove('hidden');
 
@@ -1465,42 +1465,37 @@
         function closeEditModal() { 
             const modal = document.getElementById('editModal');
             if(modal) modal.classList.add('hidden'); 
-            currentEditOrder = null; 
-            tempEditMaterials = []; 
+            currentEditOrder = null; tempEditMaterials = []; 
         }
 
         function saveEditChanges() {
             const safeGet = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
             
+            const custName = safeGet('editCustomer');
+            let linkedEmail = '';
+            const foundCust = appData.config.customers.find(c => (typeof c === 'object' ? c.name : c) === custName);
+            if(foundCust && typeof foundCust === 'object') linkedEmail = foundCust.email;
+
             currentEditOrder.startDate = safeGet('editStartDate') || "Not Started";
             currentEditOrder.department = safeGet('editDept');
             currentEditOrder.worker = safeGet('editWorker');
             currentEditOrder.status = safeGet('editStatus');
-            currentEditOrder.customer = safeGet('editCustomer');
+            currentEditOrder.customer = custName;
+            currentEditOrder.customerEmail = linkedEmail; // Re-link on edit
             currentEditOrder.notes = safeGet('editNotes');
             currentEditOrder.description = safeGet('editDesc'); 
-            
             currentEditOrder.materials = JSON.parse(JSON.stringify(tempEditMaterials));
             
-            delete currentEditOrder.metalType;
-            delete currentEditOrder.karat;
-            delete currentEditOrder.grossWeight;
-            delete currentEditOrder.pureWeight;
+            delete currentEditOrder.metalType; delete currentEditOrder.karat; delete currentEditOrder.grossWeight; delete currentEditOrder.pureWeight;
 
             currentEditOrder.statusDate = new Date().toISOString().split('T')[0];
-            
-            // Audit Trail additions
             currentEditOrder.lastModifiedBy = loggedInEmail;
             currentEditOrder.lastModifiedDate = new Date().toISOString();
             
-            saveOrderToFirebase(currentEditOrder).then(() => {
-                closeEditModal(); 
-            });
+            saveOrderToFirebase(currentEditOrder).then(() => { closeEditModal(); });
         }
 
-        let zoomLevel = 1;
-        let isDragging = false;
-        let startX = 0, startY = 0, translateX = 0, translateY = 0;
+        let zoomLevel = 1; let isDragging = false; let startX = 0, startY = 0, translateX = 0, translateY = 0;
         
         function initZoomAndPan() {
             const img = document.getElementById('viewerMainImage');
@@ -1508,32 +1503,21 @@
             if(!img || !container) return;
             
             img.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                zoomLevel += e.deltaY * -0.002;
-                zoomLevel = Math.min(Math.max(0.5, zoomLevel), 8); 
-                applyTransform();
+                e.preventDefault(); zoomLevel += e.deltaY * -0.002; zoomLevel = Math.min(Math.max(0.5, zoomLevel), 8); applyTransform();
             });
 
             img.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                startX = e.clientX - translateX;
-                startY = e.clientY - translateY;
-                img.classList.remove('cursor-grab', 'transition-transform', 'duration-75');
-                img.classList.add('cursor-grabbing');
+                isDragging = true; startX = e.clientX - translateX; startY = e.clientY - translateY;
+                img.classList.remove('cursor-grab', 'transition-transform', 'duration-75'); img.classList.add('cursor-grabbing');
             });
 
             window.addEventListener('mouseup', () => {
-                isDragging = false;
-                img.classList.remove('cursor-grabbing');
-                img.classList.add('cursor-grab', 'transition-transform', 'duration-75');
+                isDragging = false; img.classList.remove('cursor-grabbing'); img.classList.add('cursor-grab', 'transition-transform', 'duration-75');
             });
 
             window.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-                e.preventDefault();
-                translateX = e.clientX - startX;
-                translateY = e.clientY - startY;
-                applyTransform();
+                e.preventDefault(); translateX = e.clientX - startX; translateY = e.clientY - startY; applyTransform();
             });
         }
 
@@ -1551,9 +1535,7 @@
             const mainImg = document.getElementById('viewerMainImage');
             
             if(mainImg) mainImg.src = photoArray[startIndex];
-            
-            zoomLevel = 1; translateX = 0; translateY = 0;
-            applyTransform();
+            zoomLevel = 1; translateX = 0; translateY = 0; applyTransform();
 
             if(gallery) {
                 gallery.innerHTML = '';
@@ -1585,62 +1567,33 @@
             r.onload = async function(evt) {
                 try {
                     const parsed = JSON.parse(evt.target.result);
-                    let ordersToRestore = [];
-                    let configToRestore = null;
+                    let ordersToRestore = []; let configToRestore = null;
 
-                    if (Array.isArray(parsed)) {
-                        ordersToRestore = parsed;
-                    } else if (parsed.orders && Array.isArray(parsed.orders)) {
-                        ordersToRestore = parsed.orders;
-                        if (parsed.config) configToRestore = parsed.config;
-                    } else {
-                        alert("Restoration Failed: The JSON file structure is unrecognized or corrupted.");
-                        return;
-                    }
+                    if (Array.isArray(parsed)) { ordersToRestore = parsed; } 
+                    else if (parsed.orders && Array.isArray(parsed.orders)) { ordersToRestore = parsed.orders; if (parsed.config) configToRestore = parsed.config; } 
+                    else { alert("Restoration Failed: The JSON file structure is unrecognized or corrupted."); return; }
 
-                    const totalOrders = ordersToRestore.length;
-                    let restoreOrders = false;
-                    let restoreConfig = false;
+                    const totalOrders = ordersToRestore.length; let restoreOrders = false; let restoreConfig = false;
 
-                    if (totalOrders > 0) {
-                        restoreOrders = confirm(`Found ${totalOrders} orders in this backup.\n\nDo you want to RESTORE ORDERS to the live database?`);
-                    }
-                    if (configToRestore) {
-                        restoreConfig = confirm(`This backup also contains Configuration Lists (Customers, Employees, Metals, etc.).\n\nDo you want to OVERWRITE your current live lists with the lists from this backup?`);
-                    }
+                    if (totalOrders > 0) restoreOrders = confirm(`Found ${totalOrders} orders in this backup.\n\nDo you want to RESTORE ORDERS to the live database?`);
+                    if (configToRestore) restoreConfig = confirm(`This backup also contains Configuration Lists.\n\nDo you want to OVERWRITE your current live lists with the lists from this backup?`);
 
-                    if (!restoreOrders && !restoreConfig) {
-                        alert("Restoration canceled. No data was changed.");
-                        return;
-                    }
+                    if (!restoreOrders && !restoreConfig) { alert("Restoration canceled. No data was changed."); return; }
                     
-                    const statusElement = document.getElementById('cloudStatus');
-                    if (restoreConfig && configToRestore) {
-                        appData.config = configToRestore;
-                        await db.collection('settings').doc('config').set(configToRestore);
-                    }
+                    if (restoreConfig && configToRestore) { appData.config = configToRestore; await db.collection('settings').doc('config').set(configToRestore); }
                     if (restoreOrders && totalOrders > 0) {
                         let successCount = 0;
                         for (let i = 0; i < totalOrders; i++) {
-                            const order = ordersToRestore[i];
-                            try {
-                                await db.collection('orders').doc(order.id).set(order);
-                                successCount++;
-                            } catch (orderError) {
-                                console.error(`Failed on order #${order.orderNumber}:`, orderError);
-                            }
+                            try { await db.collection('orders').doc(ordersToRestore[i].id).set(ordersToRestore[i]); successCount++; } 
+                            catch (err) { console.error(`Failed on order:`, err); }
                         }
                         alert(`Successfully synced ${successCount} orders.`);
                     }
-                } catch(err) { 
-                    alert("File processing failed: " + err.message); 
-                }
+                } catch(err) { alert("File processing failed: " + err.message); }
             };
-            r.readAsText(file);
-            e.target.value = '';
+            r.readAsText(file); e.target.value = '';
         }
 
-        // --- ENHANCED EXCEL REPORTS (With User Filtering) ---
         function exportFilteredExcel() {
             const startStr = document.getElementById('excelStartDate').value;
             const endStr = document.getElementById('excelEndDate').value;
@@ -1649,14 +1602,9 @@
             if(!startStr || !endStr) return alert("Please select both a start and end date.");
 
             const filteredOrders = appData.orders.filter(order => {
-                const d1 = order.date;
-                const d2 = order.statusDate || order.date;
+                const d1 = order.date; const d2 = order.statusDate || order.date;
                 const matchesDate = (d1 >= startStr && d1 <= endStr) || (d2 >= startStr && d2 <= endStr);
-                
-                const matchesEmployee = (employeeFilter === "All") || 
-                                        (order.loggedByEmail === employeeFilter) || 
-                                        (order.lastModifiedBy === employeeFilter);
-                                        
+                const matchesEmployee = (employeeFilter === "All") || (order.loggedByEmail === employeeFilter) || (order.lastModifiedBy === employeeFilter);
                 return matchesDate && matchesEmployee;
             });
 
@@ -1668,26 +1616,15 @@
                 let totalPureEx = mats.reduce((sum, m) => sum + (parseFloat(m.pureWeight)||0), 0).toFixed(2);
 
                 return {
-                    "Order Number": order.orderNumber,
-                    "Submit Date": order.date,
-                    "Start Date": order.startDate || "Not Started",
-                    "Assigned Employee": order.employee,
-                    "Customer": order.customer,
-                    "Types": order.jewelryTypes ? order.jewelryTypes.join(', ') : '',
-                    "Description": order.description,
-                    "Materials Details": matsString,
-                    "Total Pure Weight (g)": totalPureEx,
-                    "Current Department": order.department,
-                    "Assigned Worker": order.worker,
-                    "Status": order.status,
-                    "Status Update Date": order.statusDate || order.date,
-                    "Notes": order.notes,
-                    "Last Modified By (Email)": order.lastModifiedBy || "System Admin"
+                    "Order Number": order.orderNumber, "Submit Date": order.date, "Start Date": order.startDate || "Not Started",
+                    "Assigned Employee": order.employee, "Customer": order.customer, "Types": order.jewelryTypes ? order.jewelryTypes.join(', ') : '',
+                    "Description": order.description, "Materials Details": matsString, "Total Pure Weight (g)": totalPureEx,
+                    "Current Department": order.department, "Assigned Worker": order.worker, "Status": order.status,
+                    "Status Update Date": order.statusDate || order.date, "Notes": order.notes, "Last Modified By": order.lastModifiedBy || "System Admin"
                 }
             });
 
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(excelData); const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Report");
             XLSX.writeFile(workbook, `Markasti_Audit_${startStr}_to_${endStr}.xlsx`);
         }
@@ -1702,23 +1639,14 @@
             const order = appData.orders.find(o => String(o.id) === String(orderId));
             if(!order) return;
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont("helvetica");
-            let y = 15;
+            const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFont("helvetica"); let y = 15;
 
             if (appData.config.logo) {
                 try {
-                    const imgW = 40; 
-                    const img = new Image();
-                    img.src = appData.config.logo;
-                    const imgH = (img.height / img.width) * imgW;
-                    doc.addImage(appData.config.logo, 'PNG', 105 - (imgW / 2), y, imgW, imgH);
-                    y += imgH + 10;
+                    const imgW = 40; const img = new Image(); img.src = appData.config.logo;
+                    const imgH = (img.height / img.width) * imgW; doc.addImage(appData.config.logo, 'PNG', 105 - (imgW / 2), y, imgW, imgH); y += imgH + 10;
                 } catch (e) { y += 10; }
-            } else {
-                doc.setFontSize(22); doc.setTextColor(200, 160, 40); doc.text("MARKASTI", 105, y, null, null, "center"); y += 10;
-            }
+            } else { doc.setFontSize(22); doc.setTextColor(200, 160, 40); doc.text("MARKASTI", 105, y, null, null, "center"); y += 10; }
 
             doc.setFontSize(14); doc.setTextColor(100, 100, 100); doc.text("Order Production Document", 105, y, null, null, "center"); y += 15;
             doc.setFontSize(12); doc.setTextColor(0, 0, 0);
@@ -1726,42 +1654,30 @@
             doc.text(`Customer: ${order.customer}`, 20, y); doc.text(`Start Date: ${order.startDate || "Not Started"}`, 120, y); y += 10;
             doc.text(`Jewelry Types: ${order.jewelryTypes ? order.jewelryTypes.join(', ') : 'N/A'}`, 20, y); y += 15;
 
-            doc.setDrawColor(200, 200, 200); doc.line(20, y, 190, y); y += 10;
-            doc.setFontSize(14); doc.text("Manufacturing Specs & Routing", 20, y); y += 10;
+            doc.setDrawColor(200, 200, 200); doc.line(20, y, 190, y); y += 10; doc.setFontSize(14); doc.text("Manufacturing Specs & Routing", 20, y); y += 10;
             doc.setFontSize(11);
             doc.text(`Current Dept: ${order.department || 'N/A'}`, 20, y); doc.text(`Worker: ${order.worker || 'N/A'}`, 120, y); y += 10;
             doc.text(`Status: ${order.status}`, 20, y); doc.text(`Status Date: ${order.statusDate || order.date}`, 120, y); y += 10;
             
-            if (order.description) {
-                const descLines = doc.splitTextToSize(`Description: ${order.description}`, 170); doc.text(descLines, 20, y); y += (descLines.length * 6);
-            }
-            if (order.notes) {
-                const noteLines = doc.splitTextToSize(`Dept Notes: ${order.notes}`, 170); doc.text(noteLines, 20, y); y += (noteLines.length * 6);
-            }
+            if (order.description) { const descLines = doc.splitTextToSize(`Description: ${order.description}`, 170); doc.text(descLines, 20, y); y += (descLines.length * 6); }
+            if (order.notes) { const noteLines = doc.splitTextToSize(`Dept Notes: ${order.notes}`, 170); doc.text(noteLines, 20, y); y += (noteLines.length * 6); }
 
-            y += 5; doc.line(20, y, 190, y); y += 10;
-            doc.setFontSize(14); doc.text("Materials Details", 20, y); y += 8;
-            doc.setFontSize(10);
-            const mats = getMaterialsFromOrder(order); let totalPurePDF = 0;
+            y += 5; doc.line(20, y, 190, y); y += 10; doc.setFontSize(14); doc.text("Materials Details", 20, y); y += 8;
+            doc.setFontSize(10); const mats = getMaterialsFromOrder(order); let totalPurePDF = 0;
             
             mats.forEach((mat) => {
-                let pDisp = mat.karat === '925' ? '925' : mat.karat+'K';
-                doc.text(`- ${mat.metalType} (${pDisp}):`, 20, y);
-                doc.text(`Gross: ${mat.grossWeight || 0} g   |   Pure: ${mat.pureWeight || 0} g`, 70, y);
-                totalPurePDF += parseFloat(mat.pureWeight) || 0; y += 6;
+                let pDisp = mat.karat === '925' ? '925' : mat.karat+'K'; doc.text(`- ${mat.metalType} (${pDisp}):`, 20, y);
+                doc.text(`Gross: ${mat.grossWeight || 0} g   |   Pure: ${mat.pureWeight || 0} g`, 70, y); totalPurePDF += parseFloat(mat.pureWeight) || 0; y += 6;
             });
             
-            if (mats.length > 1) {
-                y += 2; doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text(`Total Pure 999 Equiv: ${totalPurePDF.toFixed(2)} g`, 70, y); doc.setFont("helvetica", "normal"); y += 8;
-            } else { y += 4; }
+            if (mats.length > 1) { y += 2; doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text(`Total Pure 999 Equiv: ${totalPurePDF.toFixed(2)} g`, 70, y); doc.setFont("helvetica", "normal"); y += 8; } else { y += 4; }
 
             if (order.photos && order.photos.length > 0) {
                 doc.line(20, y, 190, y); y += 10; doc.setFontSize(14); doc.text("Order Photos", 20, y); y += 10;
                 const imgWidth = 80; const imgHeight = 80; let x = 20;
                 order.photos.forEach((photo) => {
                     if (y + imgHeight > 280) { doc.addPage(); y = 20; x = 20; }
-                    doc.addImage(photo, 'JPEG', x, y, imgWidth, imgHeight);
-                    if (x === 20) { x = 110; } else { x = 20; y += (imgHeight + 10); }
+                    doc.addImage(photo, 'JPEG', x, y, imgWidth, imgHeight); if (x === 20) { x = 110; } else { x = 20; y += (imgHeight + 10); }
                 });
             }
             doc.save(`Markasti_JobTicket_${order.orderNumber}.pdf`);
