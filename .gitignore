@@ -67,3 +67,21 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Functions deps / local env
+functions/node_modules/
+functions/.env
+functions/.env.*
+!functions/.env.example
+
+# Stale / scratch artifacts — the live source is public/index.html
+public/index.html.bak*
+public/tmp_extracted.js
+live_site.html
+diff.txt
+*.docx
+
+# Test + tooling output
+test-results/
+playwright-report/
+.agents/

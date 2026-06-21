@@ -1,0 +1,42 @@
+# Full-app accessibility check: spins up the Firebase Auth + Firestore emulators,
+# seeds an admin user, serves the app, logs in with Playwright, and runs axe-core
+# on the authenticated dashboard + an open modal (coverage the login-screen pa11y
+# check can't reach). Non-blocking while the baseline is established — read the
+# logged violations, then tighten tests/a11y/*.spec.js + drop continue-on-error.
+name: Accessibility (full app)
+
+on:
+  pull_request:
+
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java (for the Firebase emulators)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build CSS
+        run: npm run build:css
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install Playwright (Chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Full-app accessibility test (emulators + axe)
+        continue-on-error: true
+        run: npm run test:a11y

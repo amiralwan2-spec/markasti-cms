@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'Admin';
+    }
+
+    function isAdminOrManager() {
+      return request.auth != null
+        && (get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'Admin'
+            || get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'Manager');
+    }
+
+    function isWorker() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'Worker';
+    }
+
+    match /orders/{orderId} {
+      // Admin/Manager see all orders; workers see all orders (to scan any QR); customers see their own
+      allow read: if isAdminOrManager()
+        || isWorker()
+        || (request.auth != null && resource.data.customerEmail == request.auth.token.email)
+        || (request.auth != null && resource.data.loggedByEmail == request.auth.token.email);
+
+      // Admin/Manager can create any order. Customers may only submit their own
+      // order: logged under their email, flagged submittedByCustomer, and with NO
+      // production assignment (worker/department must be empty — those are staff-only).
+      allow create: if isAdminOrManager()
+        || (request.auth != null
+            && request.resource.data.loggedByEmail == request.auth.token.email
+            && request.resource.data.submittedByCustomer == true
+            && request.resource.data.worker == ''
+            && request.resource.data.department == '');
+
+      // Admin/Manager can update any order; workers can claim (worker/department) and update status;
+      // customers can only update customerNotes on their own orders
+      allow update: if isAdminOrManager()
+        || (isWorker()
+            && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['worker', 'department', 'lastModifiedBy', 'lastModifiedDate',
+                         'status', 'statusDate', 'statusHistory']))
+        || (request.auth != null
+            && (resource.data.customerEmail == request.auth.token.email || resource.data.loggedByEmail == request.auth.token.email)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['customerNotes', 'lastModifiedBy', 'lastModifiedDate']));
+
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{document} {
+      allow read: if request.auth != null;
+      allow write: if isAdminOrManager();
+    }
+
+    match /users/{userId} {
+      allow read: if request.auth != null && (
+        request.auth.token.email == userId ||
+        isAdminOrManager()
+      );
+      // Self-registration is for Customers only. Admins promote to Manager/Worker
+      // via update (isAdminOrManager). This blocks anyone self-assigning role:'Admin'.
+      allow create: if request.auth != null && request.auth.token.email == userId
+        && request.resource.data.role == 'Customer';
+      allow update: if isAdminOrManager() ||
+        (request.auth != null && request.auth.token.email == userId &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fcmTokens', 'fcmTokenMap', 'name', 'currentOrderId']));
+      allow delete: if isAdminOrManager();
+    }
+
+    function validActivityLog() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['type', 'summary', 'performedBy', 'timestamp', 'details'])
+        && d.summary is string && d.summary.size() <= 1000
+        && d.performedBy == request.auth.token.email
+        && d.type in ['order_created', 'order_modified', 'order_archived', 'order_restored',
+                      'order_deleted', 'config_added', 'config_modified', 'config_deleted',
+                      'bulk_status', 'customer_note', 'data_export', 'worker_self_assigned'];
+    }
+
+    match /activityLog/{docId} {
+      allow read: if isAdmin();
+      // Users may only create entries attributed to their own email; audit logs are immutable
+      allow create: if request.auth != null && validActivityLog();
+      allow update, delete: if false;
+    }
+
+    // Internal chat between Admin/Manager users — flat message collection.
+    // Unread state lives on each message's `read` flag (no counters), so the
+    // recipient must be able to flip `read` to true when they open the thread.
+    match /messages/{msgId} {
+      // Privacy: only the two people in the conversation can read it — not
+      // every Admin/Manager. Queries must filter on `participants` accordingly.
+      allow read: if isAdminOrManager()
+        && request.auth.token.email in resource.data.participants;
+      allow create: if isAdminOrManager()
+        && request.resource.data.from == request.auth.token.email
+        && request.resource.data.read == false
+        && request.resource.data.participants.size() == 2
+        && request.auth.token.email in request.resource.data.participants
+        && request.resource.data.to in request.resource.data.participants;
+      // Only the recipient may mark a message read, and only the `read` field.
+      allow update: if isAdminOrManager()
+        && resource.data.to == request.auth.token.email
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}

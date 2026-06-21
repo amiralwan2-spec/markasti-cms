@@ -1,0 +1,57 @@
+# Runs the test suite on pull requests (and on pushes to non-main branches).
+# Pushes to main are gated by the deploy workflow itself (firebase-hosting-merge),
+# which runs these same checks before deploying — so this avoids running them
+# twice on main. The rules test needs Java + the Firebase emulator, both provided
+# by the runner here (they aren't available locally).
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java (for the Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build CSS
+        run: npm run build:css
+
+      - name: Smoke test (static checks)
+        run: npm run smoke
+
+      - name: Unit tests (notification logic)
+        run: npm test
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Firestore security-rules tests (emulator)
+        run: npm run test:rules
+
+      # Accessibility check (axe via pa11y) against the served app. It audits the
+      # initial screen (login overlay) AFTER the runtime a11y JS applies. Full-app
+      # coverage would need test auth; this still catches global regressions
+      # (labels, button names, contrast, lang). Non-blocking — reports in the log.
+      - name: Accessibility check (axe / WCAG 2 AA)
+        continue-on-error: true
+        run: |
+          npx --yes http-server public -p 8080 -s &
+          npx --yes wait-on http://localhost:8080
+          npx --yes pa11y --runner axe --standard WCAG2AA --timeout 60000 http://localhost:8080

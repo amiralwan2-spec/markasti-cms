@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Order photos: any authenticated user can read and upload.
+    // Deletes are restricted to admin/manager — enforced at app level since cross-service
+    // Firestore role lookups are unsupported on *.firebasestorage.app buckets.
+    // We at minimum require the request to carry a valid uid and a non-empty email claim.
+    match /orders/{orderId}/{filename} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null && request.auth.token.email != null;
+      allow delete: if request.auth != null && request.auth.token.email != null
+        && (request.auth.token.email.matches('.*@.*'));
+    }
+
+    // Chat attachments (Admin/Manager internal chat). Per-conversation role checks
+    // aren't possible in Storage rules on *.firebasestorage.app buckets, so we
+    // require an authenticated user with an email; the unguessable download URL is
+    // only ever shared inside the participant-restricted chat message. 10MB cap.
+    match /chat/{conversation}/{filename} {
+      allow read:   if request.auth != null && request.auth.token.email != null;
+      allow write:  if request.auth != null && request.auth.token.email != null
+        && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if request.auth != null && request.auth.token.email != null;
+    }
+
+    // PWA icons: publicly readable; write/delete restricted to users with verified email
+    // (Brand Settings UI is already admin-only; this adds a storage-layer guard)
+    match /icons/{filename} {
+      allow read:          if true;
+      allow write, delete: if request.auth != null
+        && request.auth.token.email_verified == true;
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
