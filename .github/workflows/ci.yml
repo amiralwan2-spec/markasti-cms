@@ -1,14 +1,12 @@
-# Runs the test suite on pull requests (and on pushes to non-main branches).
-# Pushes to main are gated by the deploy workflow itself (firebase-hosting-merge),
-# which runs these same checks before deploying — so this avoids running them
-# twice on main. The rules test needs Java + the Firebase emulator, both provided
-# by the runner here (they aren't available locally).
+# Runs the test suite on every push and PR. Purely a pass/fail safety check —
+# it does NOT deploy and does NOT commit anything back to the repo (so it never
+# causes pull-before-push friction). Deploys are done manually via `npm run deploy`.
+# The rules test needs Java + the Firebase emulator, provided by the runner.
 name: Tests
 
 on:
-  pull_request:
   push:
-    branches-ignore: [main]
+  pull_request:
 
 jobs:
   test:
